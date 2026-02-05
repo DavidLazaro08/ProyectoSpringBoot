@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro</title>
+
+    <!-- CSS externo -->
+    <link rel="stylesheet" th:href="@{/css/register.css}">
+</head>
+<body>
+
+<h1>Registro</h1>
+
+<form method="post" action="/register">
+
+    <div class="row">
+        <label>Nombre</label>
+        <input type="text" name="nombre" required>
+    </div>
+
+    <div class="row">
+        <label>Apellidos</label>
+        <input type="text" name="apellidos" required>
+    </div>
+
+    <div class="row">
+        <label>Email</label>
+        <input type="email" name="email" required>
+    </div>
+
+    <div class="row">
+        <label>País</label>
+        <input type="text" name="pais" required>
+    </div>
+
+    <div class="row">
+        <label>Teléfono</label>
+        <input type="text" name="telefono">
+    </div>
+
+    <div class="row">
+        <label>Plan</label>
+        <select name="planId" required>
+            <option th:each="p : ${planes}"
+                    th:value="${p.id}"
+                    th:text="${p.nombre + ' - ' + p.precioMensual + '€/mes'}">
+            </option>
+        </select>
+    </div>
+
+    <button type="submit">Registrar</button>
+
+</form>
+
+</body>
+</html>

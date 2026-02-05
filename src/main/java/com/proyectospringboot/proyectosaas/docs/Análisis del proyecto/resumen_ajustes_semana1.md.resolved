@@ -1,0 +1,120 @@
+# 📝 Resumen de Ajustes Aplicados - SEMANA 1
+
+## ✅ Cambios Completados
+
+Se han aplicado **4 ajustes puntuales** al proyecto Spring Boot sin añadir funcionalidad nueva ni adelantar semanas posteriores.
+
+---
+
+## 📂 Archivos Modificados
+
+### 1️⃣ **Blindaje del Dashboard**
+
+#### [RegistroService.java](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/Desarrollo%20de%20Interfaces/SPRINTBOOT/PROYECTO%20FINAL/proyecto-saas/src/main/java/com/proyectospringboot/proyectosaas/service/RegistroService.java)
+- **Cambio:** Método [getDashboard()](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/Desarrollo%20de%20Interfaces/SPRINTBOOT/PROYECTO%20FINAL/proyecto-saas/src/main/java/com/proyectospringboot/proyectosaas/service/RegistroService.java#54-82) ahora maneja facturas opcionales sin lanzar excepciones
+- **Detalle:** Usa `.orElse(null)` en lugar de `.orElseThrow()` para facturas
+- **Resultado:** Si no hay factura, muestra valores `null` que se renderizan como "—" en la vista
+
+#### [dashboard.html](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/Desarrollo%20de%20Interfaces/SPRINTBOOT/PROYECTO%20FINAL/proyecto-saas/src/main/resources/templates/dashboard.html)
+- **Cambio:** Añadida validación `!= null` para `importeFactura`
+- **Detalle:** Muestra "—" si el importe es nulo
+
+---
+
+### 2️⃣ **Sustitución Double → BigDecimal**
+
+#### [Plan.java](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/Desarrollo%20de%20Interfaces/SPRINTBOOT/PROYECTO%20FINAL/proyecto-saas/src/main/java/com/proyectospringboot/proyectosaas/domain/entity/Plan.java)
+- **Cambio:** Campo `precioMensual` de `Double` a `BigDecimal`
+
+#### [Factura.java](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/Desarrollo%20de%20Interfaces/SPRINTBOOT/PROYECTO%20FINAL/proyecto-saas/src/main/java/com/proyectospringboot/proyectosaas/domain/entity/Factura.java)
+- **Cambio:** Campo `importe` de `Double` a `BigDecimal`
+
+#### [Pago.java](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/Desarrollo%20de%20Interfaces/SPRINTBOOT/PROYECTO%20FINAL/proyecto-saas/src/main/java/com/proyectospringboot/proyectosaas/domain/entity/Pago.java)
+- **Cambio:** Campo `importe` de `Double` a `BigDecimal`
+
+#### [PagoTarjeta.java](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/Desarrollo%20de%20Interfaces/SPRINTBOOT/PROYECTO%20FINAL/proyecto-saas/src/main/java/com/proyectospringboot/proyectosaas/domain/entity/PagoTarjeta.java)
+- **Cambio:** Constructor actualizado para aceptar `BigDecimal`
+
+#### [PagoPaypal.java](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/Desarrollo%20de%20Interfaces/SPRINTBOOT/PROYECTO%20FINAL/proyecto-saas/src/main/java/com/proyectospringboot/proyectosaas/domain/entity/PagoPaypal.java)
+- **Cambio:** Constructor actualizado para aceptar `BigDecimal`
+
+#### [PagoTransferencia.java](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/Desarrollo%20de%20Interfaces/SPRINTBOOT/PROYECTO%20FINAL/proyecto-saas/src/main/java/com/proyectospringboot/proyectosaas/domain/entity/PagoTransferencia.java)
+- **Cambio:** Constructor actualizado para aceptar `BigDecimal`
+
+#### [RegistroService.java](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/Desarrollo%20de%20Interfaces/SPRINTBOOT/PROYECTO%20FINAL/proyecto-saas/src/main/java/com/proyectospringboot/proyectosaas/service/RegistroService.java)
+- **Cambio:** [DashboardDTO](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/Desarrollo%20de%20Interfaces/SPRINTBOOT/PROYECTO%20FINAL/proyecto-saas/src/main/java/com/proyectospringboot/proyectosaas/service/RegistroService.java#83-119) ahora usa `BigDecimal` para `importeFactura`
+
+#### [DataInitializer.java](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/Desarrollo%20de%20Interfaces/SPRINTBOOT/PROYECTO%20FINAL/proyecto-saas/src/main/java/com/proyectospringboot/proyectosaas/config/DataInitializer.java)
+- **Cambio:** Uso de `BigDecimal.valueOf(9.99)` en lugar de literales `double`
+
+---
+
+### 3️⃣ **Comentarios Naturales**
+
+#### [Usuario.java](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/Desarrollo%20de%20Interfaces/SPRINTBOOT/PROYECTO%20FINAL/proyecto-saas/src/main/java/com/proyectospringboot/proyectosaas/domain/entity/Usuario.java)
+- **Eliminado:** "// Relación 1–1 con Perfil (lado inverso)"
+- **Eliminado:** "// Constructor requerido por JPA"
+- **Eliminado:** "// Getters"
+
+#### [Perfil.java](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/Desarrollo%20de%20Interfaces/SPRINTBOOT/PROYECTO%20FINAL/proyecto-saas/src/main/java/com/proyectospringboot/proyectosaas/domain/entity/Perfil.java)
+- **Eliminado:** "// Campos básicos (mínimos y defendibles)"
+- **Eliminado:** "// 1 Usuario -> 1 Perfil"
+- **Eliminado:** "// El FK lo guardamos aquí: perfiles.usuario_id (único)"
+- **Eliminado:** "// JPA"
+
+#### [Suscripcion.java](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/Desarrollo%20de%20Interfaces/SPRINTBOOT/PROYECTO%20FINAL/proyecto-saas/src/main/java/com/proyectospringboot/proyectosaas/domain/entity/Suscripcion.java)
+- **Eliminado:** "// Un usuario -> una suscripción (simplificación defendible para el proyecto)"
+- **Eliminado:** "// Plan es "catálogo", no hace falta auditarlo para el histórico de suscripciones"
+- **Eliminado:** "// Requerido por JPA"
+
+#### [EstadoSuscripcion.java](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/Desarrollo%20de%20Interfaces/SPRINTBOOT/PROYECTO%20FINAL/proyecto-saas/src/main/java/com/proyectospringboot/proyectosaas/domain/enums/EstadoSuscripcion.java)
+- **Eliminado:** Comentario JavaDoc completo sobre estados y ciclo de vida
+
+#### [RegistroService.java](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/Desarrollo%20de%20Interfaces/SPRINTBOOT/PROYECTO%20FINAL/proyecto-saas/src/main/java/com/proyectospringboot/proyectosaas/service/RegistroService.java)
+- **Eliminado:** "// 1) Usuario", "// 2) Perfil (1-1)", "// 3) Suscripción", "// 4) Factura automática (mínima)"
+- **Eliminado:** "// Getters "clásicos" para que Thymeleaf los coja sin pelearse con records"
+
+---
+
+### 4️⃣ **DataInitializer para Pruebas**
+
+#### [DataInitializer.java](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/Desarrollo%20de%20Interfaces/SPRINTBOOT/PROYECTO%20FINAL/proyecto-saas/src/main/java/com/proyectospringboot/proyectosaas/config/DataInitializer.java)
+- **Añadido:** Comentario JavaDoc claro: `/** Inicialización de datos de prueba para desarrollo. Este componente NO debe usarse en producción. */`
+- **Simplificado:** Comentarios internos ("Planes de catálogo", "Usuario de prueba", etc.)
+- **Actualizado:** Uso de `BigDecimal.valueOf()` para precios
+
+---
+
+## 📊 Resumen por Tipo de Cambio
+
+| Ajuste | Archivos Afectados | Impacto |
+|--------|-------------------|---------|
+| **Blindaje Dashboard** | [RegistroService.java](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/Desarrollo%20de%20Interfaces/SPRINTBOOT/PROYECTO%20FINAL/proyecto-saas/src/main/java/com/proyectospringboot/proyectosaas/service/RegistroService.java), [dashboard.html](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/Desarrollo%20de%20Interfaces/SPRINTBOOT/PROYECTO%20FINAL/proyecto-saas/src/main/resources/templates/dashboard.html) | Sin excepciones si falta factura |
+| **Double → BigDecimal** | [Plan.java](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/Desarrollo%20de%20Interfaces/SPRINTBOOT/PROYECTO%20FINAL/proyecto-saas/src/main/java/com/proyectospringboot/proyectosaas/domain/entity/Plan.java), [Factura.java](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/Desarrollo%20de%20Interfaces/SPRINTBOOT/PROYECTO%20FINAL/proyecto-saas/src/main/java/com/proyectospringboot/proyectosaas/domain/entity/Factura.java), [Pago.java](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/Desarrollo%20de%20Interfaces/SPRINTBOOT/PROYECTO%20FINAL/proyecto-saas/src/main/java/com/proyectospringboot/proyectosaas/domain/entity/Pago.java), [PagoTarjeta.java](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/Desarrollo%20de%20Interfaces/SPRINTBOOT/PROYECTO%20FINAL/proyecto-saas/src/main/java/com/proyectospringboot/proyectosaas/domain/entity/PagoTarjeta.java), [PagoPaypal.java](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/Desarrollo%20de%20Interfaces/SPRINTBOOT/PROYECTO%20FINAL/proyecto-saas/src/main/java/com/proyectospringboot/proyectosaas/domain/entity/PagoPaypal.java), [PagoTransferencia.java](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/Desarrollo%20de%20Interfaces/SPRINTBOOT/PROYECTO%20FINAL/proyecto-saas/src/main/java/com/proyectospringboot/proyectosaas/domain/entity/PagoTransferencia.java), [RegistroService.java](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/Desarrollo%20de%20Interfaces/SPRINTBOOT/PROYECTO%20FINAL/proyecto-saas/src/main/java/com/proyectospringboot/proyectosaas/service/RegistroService.java), [DataInitializer.java](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/Desarrollo%20de%20Interfaces/SPRINTBOOT/PROYECTO%20FINAL/proyecto-saas/src/main/java/com/proyectospringboot/proyectosaas/config/DataInitializer.java) | Mayor precisión monetaria |
+| **Comentarios Naturales** | [Usuario.java](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/Desarrollo%20de%20Interfaces/SPRINTBOOT/PROYECTO%20FINAL/proyecto-saas/src/main/java/com/proyectospringboot/proyectosaas/domain/entity/Usuario.java), [Perfil.java](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/Desarrollo%20de%20Interfaces/SPRINTBOOT/PROYECTO%20FINAL/proyecto-saas/src/main/java/com/proyectospringboot/proyectosaas/domain/entity/Perfil.java), [Suscripcion.java](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/Desarrollo%20de%20Interfaces/SPRINTBOOT/PROYECTO%20FINAL/proyecto-saas/src/main/java/com/proyectospringboot/proyectosaas/domain/entity/Suscripcion.java), [EstadoSuscripcion.java](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/Desarrollo%20de%20Interfaces/SPRINTBOOT/PROYECTO%20FINAL/proyecto-saas/src/main/java/com/proyectospringboot/proyectosaas/domain/enums/EstadoSuscripcion.java), [RegistroService.java](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/Desarrollo%20de%20Interfaces/SPRINTBOOT/PROYECTO%20FINAL/proyecto-saas/src/main/java/com/proyectospringboot/proyectosaas/service/RegistroService.java) | Código más limpio y profesional |
+| **DataInitializer** | [DataInitializer.java](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/Desarrollo%20de%20Interfaces/SPRINTBOOT/PROYECTO%20FINAL/proyecto-saas/src/main/java/com/proyectospringboot/proyectosaas/config/DataInitializer.java) | Claramente marcado como datos de prueba |
+
+---
+
+## 🚫 Lo que NO se ha tocado
+
+✅ No se implementó prorrateo  
+✅ No se tocaron renovaciones  
+✅ No se añadieron vistas nuevas  
+✅ No se refactorizó la arquitectura  
+✅ No se adelantó nada de semanas posteriores  
+
+---
+
+## ✅ Estado Final
+
+- **Compilación:** ✅ Sin errores
+- **Funcionalidad:** ✅ Idéntica a la anterior
+- **Código:** ✅ Más limpio y profesional
+- **Precisión monetaria:** ✅ Mejorada con `BigDecimal`
+- **Robustez:** ✅ Dashboard blindado contra facturas faltantes
+
+---
+
+**Fecha:** 2026-02-05  
+**Proyecto:** proyecto-saas (SEMANA 1)

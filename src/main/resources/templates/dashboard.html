@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+</head>
+<body>
+
+<h2 th:text="'Hola ' + ${dash.nombreCompleto}"></h2>
+
+<p><b>Email:</b> <span th:text="${dash.email}"></span></p>
+<p><b>País:</b> <span th:text="${dash.pais}"></span></p>
+
+<hr>
+
+<p><b>Tu plan es:</b> <span th:text="${dash.planNombre}"></span></p>
+<p><b>Estado suscripción:</b> <span th:text="${dash.estado}"></span></p>
+
+<hr>
+
+<p><b>Última factura:</b></p>
+<p>Importe: <span th:text="${dash.importeFactura != null ? dash.importeFactura : '—'}"></span> €</p>
+<p>Fecha: <span th:text="${dash.fechaFactura != null ? dash.fechaFactura : '—'}"></span></p>
+
+</body>
+</html>

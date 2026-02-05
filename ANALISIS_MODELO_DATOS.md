@@ -1,0 +1,509 @@
+# 📊 Análisis del Modelo de Datos - Proyecto SaaS
+
+## ✅ Resumen Ejecutivo
+
+**Estado General:** ✅ **APROBADO CON OBSERVACIONES MENORES**
+
+Tu modelo de datos cumple con **todos los requisitos del enunciado** y está bien diseñado. Las relaciones están correctamente normalizadas, la auditoría con Envers está implementada, y la herencia de métodos de pago sigue buenas prácticas.
+
+---
+
+## 📋 Validación del Cumplimiento del Enunciado
+
+| Requisito | Estado | Observaciones |
+|-----------|--------|---------------|
+| ✅ Entidad Usuario | **CUMPLE** | Correctamente implementada con email único y fecha de alta |
+| ✅ Entidad Perfil (1:1 con Usuario) | **CUMPLE** | Relación 1:1 bidireccional bien implementada |
+| ✅ Entidad Suscripción | **CUMPLE** | Relación con Usuario y Plan correcta |
+| ✅ Entidad Plan | **CUMPLE** | Catálogo de planes (Basic, Premium, Enterprise) |
+| ✅ Entidad Factura | **CUMPLE** | Generada por suscripción (Many-to-One) |
+| ✅ Métodos de pago con herencia | **CUMPLE** | Estrategia JOINED correctamente aplicada |
+| ✅ Enum EstadoSuscripcion | **CUMPLE** | ACTIVA, CANCELADA, MOROSA implementados |
+| ✅ Auditoría con @Audited | **CUMPLE** | Hibernate Envers configurado en Suscripción |
+| ✅ Historial de cambios | **CUMPLE** | Envers auditará cambios en suscripciones |
+| ✅ Relaciones normalizadas | **CUMPLE** | Sin redundancias detectadas |
+
+---
+
+## 🔍 Análisis Detallado por Entidad
+
+### 1️⃣ **Usuario** (`usuarios`)
+
+```java
+@Entity
+@Table(name = "usuarios")
+public class Usuario
+```
+
+**Atributos:**
+- `id` (PK) - Long, auto-incremental
+- `email` - String, UNIQUE, NOT NULL
+- `pais` - String, NOT NULL
+- `fechaAlta` - LocalDateTime, NOT NULL
+
+**Relaciones:**
+- `perfil` → **1:1** con `Perfil` (lado inverso, `mappedBy`)
+
+**✅ Buenas prácticas detectadas:**
+- Email único para evitar duplicados
+- Constructor protegido para JPA
+- Inmutabilidad (solo getters, sin setters)
+- Fecha de alta automática en el constructor
+
+**⚠️ Observaciones menores:**
+- Considera agregar validación `@Email` en el campo email
+- Podrías agregar un índice en `pais` si planeas filtrar por país frecuentemente
+
+---
+
+### 2️⃣ **Perfil** (`perfiles`)
+
+```java
+@Entity
+@Table(name = "perfiles")
+public class Perfil
+```
+
+**Atributos:**
+- `id` (PK) - Long, auto-incremental
+- `nombre` - String, NOT NULL
+- `apellidos` - String, NOT NULL
+- `telefono` - String, nullable
+- `usuario_id` (FK) - UNIQUE, NOT NULL
+
+**Relaciones:**
+- `usuario` → **1:1** con `Usuario` (lado propietario, `@JoinColumn`)
+
+**✅ Buenas prácticas detectadas:**
+- FK en el lado correcto (Perfil es dependiente de Usuario)
+- `unique = true` garantiza la relación 1:1
+- `optional = false` asegura integridad referencial
+
+**✅ Diseño correcto:** La decisión de poner la FK en `perfiles` es acertada.
+
+---
+
+### 3️⃣ **Plan** (`planes`)
+
+```java
+@Entity
+@Table(name = "planes")
+public class Plan
+```
+
+**Atributos:**
+- `id` (PK) - Long, auto-incremental
+- `nombre` - String, UNIQUE, NOT NULL
+- `precioMensual` - Double, NOT NULL
+
+**Relaciones:**
+- Ninguna explícita (es un catálogo referenciado por `Suscripcion`)
+
+**✅ Buenas prácticas detectadas:**
+- Nombre único para evitar duplicados (Basic, Premium, Enterprise)
+- Entidad de catálogo simple y efectiva
+
+**⚠️ Observaciones menores:**
+- Considera usar `BigDecimal` en lugar de `Double` para precios (mejor precisión monetaria)
+- Podrías agregar un campo `activo` (boolean) para desactivar planes sin eliminarlos
+
+---
+
+### 4️⃣ **Suscripción** (`suscripciones`) ⭐ **AUDITADA**
+
+```java
+@Audited
+@Entity
+@Table(name = "suscripciones")
+public class Suscripcion
+```
+
+**Atributos:**
+- `id` (PK) - Long, auto-incremental
+- `usuario_id` (FK) - UNIQUE, NOT NULL
+- `plan_id` (FK) - NOT NULL
+- `estado` - Enum (ACTIVA, CANCELADA, MOROSA)
+- `fechaInicio` - LocalDateTime, NOT NULL
+- `fechaFinCiclo` - LocalDateTime, NOT NULL
+- `fechaCancelacion` - LocalDateTime, nullable
+
+**Relaciones:**
+- `usuario` → **1:1** con `Usuario` (simplificación defendible)
+- `plan` → **Many-to-One** con `Plan`
+
+**✅ Buenas prácticas detectadas:**
+- `@Audited` correctamente aplicado
+- `@Audited(targetAuditMode = NOT_AUDITED)` en relaciones para evitar auditar entidades de catálogo
+- Método de negocio `cancelar()` que actualiza estado y fecha
+- Enum `EstadoSuscripcion` mapeado como STRING (legible en BD)
+
+**✅ Auditoría Envers:**
+- Hibernate Envers creará automáticamente la tabla `suscripciones_AUD`
+- Registrará todos los cambios de estado, plan, fechas, etc.
+
+**⚠️ Observaciones:**
+- La relación Usuario-Suscripción es **1:1** (un usuario solo puede tener una suscripción activa)
+  - ✅ **Esto es defendible** para un proyecto académico
+  - 💡 En producción real, podría ser **1:N** (un usuario con múltiples suscripciones históricas)
+
+---
+
+### 5️⃣ **Factura** (`facturas`)
+
+```java
+@Entity
+@Table(name = "facturas")
+public class Factura
+```
+
+**Atributos:**
+- `id` (PK) - Long, auto-incremental
+- `suscripcion_id` (FK) - NOT NULL
+- `importe` - Double, NOT NULL
+- `fecha` - LocalDateTime, NOT NULL
+
+**Relaciones:**
+- `suscripcion` → **Many-to-One** con `Suscripcion`
+
+**✅ Buenas prácticas detectadas:**
+- Relación correcta: una suscripción puede generar múltiples facturas
+- Inmutabilidad (solo getters)
+
+**⚠️ Observaciones menores:**
+- Considera usar `BigDecimal` para `importe`
+- Podrías agregar un campo `numero` (String, UNIQUE) para número de factura
+- Considera agregar un índice en `suscripcion_id` para consultas frecuentes
+
+---
+
+### 6️⃣ **Pago** (Clase abstracta) - Herencia JOINED
+
+```java
+@Entity
+@Table(name = "pagos")
+@Inheritance(strategy = InheritanceType.JOINED)
+public abstract class Pago
+```
+
+**Atributos:**
+- `id` (PK) - Long, auto-incremental
+- `factura_id` (FK) - UNIQUE, NOT NULL
+- `importe` - Double, NOT NULL
+- `fecha` - LocalDateTime, NOT NULL
+
+**Relaciones:**
+- `factura` → **1:1** con `Factura`
+
+**Subclases:**
+
+#### 6.1 **PagoTarjeta** (`pagos_tarjeta`)
+- `ultimos4` - String
+- `titular` - String
+
+#### 6.2 **PagoPaypal** (`pagos_paypal`)
+- `emailPaypal` - String
+
+#### 6.3 **PagoTransferencia** (`pagos_transferencia`)
+- `iban` - String
+- `referencia` - String
+
+**✅ Buenas prácticas detectadas:**
+- **Estrategia JOINED** es la más normalizada y recomendada
+- Cada tipo de pago tiene su propia tabla con campos específicos
+- Tabla padre `pagos` contiene campos comunes
+- Relación 1:1 con Factura (un pago por factura)
+
+**✅ Estructura de tablas generada:**
+```
+pagos (id, factura_id, importe, fecha)
+  ├── pagos_tarjeta (id, ultimos4, titular)
+  ├── pagos_paypal (id, emailPaypal)
+  └── pagos_transferencia (id, iban, referencia)
+```
+
+**⚠️ Observaciones menores:**
+- Considera agregar validaciones:
+  - `@Column(length = 4)` en `ultimos4`
+  - `@Email` en `emailPaypal`
+  - Validación de formato IBAN
+
+---
+
+## 🗂️ Diagrama Entidad-Relación (E-R)
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         DIAGRAMA E-R COMPLETO                           │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────┐
+│      USUARIOS        │
+├──────────────────────┤
+│ 🔑 id (PK)           │
+│    email (UNIQUE)    │
+│    pais              │
+│    fechaAlta         │
+└──────────┬───────────┘
+           │
+           │ 1:1
+           │
+           ▼
+┌──────────────────────┐
+│      PERFILES        │
+├──────────────────────┤
+│ 🔑 id (PK)           │
+│ 🔗 usuario_id (FK)   │◄─── UNIQUE (garantiza 1:1)
+│    nombre            │
+│    apellidos         │
+│    telefono          │
+└──────────────────────┘
+
+
+┌──────────────────────┐
+│       PLANES         │
+├──────────────────────┤
+│ 🔑 id (PK)           │
+│    nombre (UNIQUE)   │◄─── "Basic", "Premium", "Enterprise"
+│    precioMensual     │
+└──────────┬───────────┘
+           │
+           │ N:1
+           │
+           ▼
+┌──────────────────────────────┐
+│      SUSCRIPCIONES 🔍        │◄─── @Audited (Envers)
+├──────────────────────────────┤
+│ 🔑 id (PK)                   │
+│ 🔗 usuario_id (FK, UNIQUE)   │◄─── 1:1 con Usuario
+│ 🔗 plan_id (FK)              │◄─── N:1 con Plan
+│    estado (ENUM)             │◄─── ACTIVA, CANCELADA, MOROSA
+│    fechaInicio               │
+│    fechaFinCiclo             │
+│    fechaCancelacion          │
+└──────────┬───────────────────┘
+           │
+           │ 1:N
+           │
+           ▼
+┌──────────────────────┐
+│      FACTURAS        │
+├──────────────────────┤
+│ 🔑 id (PK)           │
+│ 🔗 suscripcion_id    │◄─── N:1 con Suscripcion
+│    importe           │
+│    fecha             │
+└──────────┬───────────┘
+           │
+           │ 1:1
+           │
+           ▼
+┌──────────────────────────────────────────────────────────────┐
+│                    PAGOS (Herencia JOINED)                   │
+├──────────────────────────────────────────────────────────────┤
+│ 🔑 id (PK)                                                   │
+│ 🔗 factura_id (FK, UNIQUE) ◄─── 1:1 con Factura             │
+│    importe                                                   │
+│    fecha                                                     │
+└──────────┬───────────────────────────────────────────────────┘
+           │
+           ├─────────────┬─────────────┬─────────────┐
+           │             │             │             │
+           ▼             ▼             ▼             ▼
+    ┌─────────────┐ ┌─────────────┐ ┌─────────────────┐
+    │PAGOS_TARJETA│ │PAGOS_PAYPAL │ │PAGOS_TRANSFEREN.│
+    ├─────────────┤ ├─────────────┤ ├─────────────────┤
+    │🔗 id (PK,FK)│ │🔗 id (PK,FK)│ │🔗 id (PK,FK)    │
+    │  ultimos4   │ │ emailPaypal │ │  iban           │
+    │  titular    │ └─────────────┘ │  referencia     │
+    └─────────────┘                 └─────────────────┘
+```
+
+---
+
+## 📊 Resumen de Cardinalidades
+
+| Relación | Cardinalidad | FK ubicada en | Constraint |
+|----------|--------------|---------------|------------|
+| Usuario ↔ Perfil | **1:1** | `perfiles.usuario_id` | UNIQUE, NOT NULL |
+| Usuario ↔ Suscripcion | **1:1** | `suscripciones.usuario_id` | UNIQUE, NOT NULL |
+| Plan ↔ Suscripcion | **1:N** | `suscripciones.plan_id` | NOT NULL |
+| Suscripcion ↔ Factura | **1:N** | `facturas.suscripcion_id` | NOT NULL |
+| Factura ↔ Pago | **1:1** | `pagos.factura_id` | UNIQUE, NOT NULL |
+| Pago ↔ Subclases | **Herencia JOINED** | `pagos_*.id` | PK = FK |
+
+---
+
+## 🎯 Claves Primarias y Foráneas
+
+### Claves Primarias (PK)
+- `usuarios.id`
+- `perfiles.id`
+- `planes.id`
+- `suscripciones.id`
+- `facturas.id`
+- `pagos.id`
+- `pagos_tarjeta.id` (también FK a `pagos.id`)
+- `pagos_paypal.id` (también FK a `pagos.id`)
+- `pagos_transferencia.id` (también FK a `pagos.id`)
+
+### Claves Foráneas (FK)
+- `perfiles.usuario_id` → `usuarios.id`
+- `suscripciones.usuario_id` → `usuarios.id`
+- `suscripciones.plan_id` → `planes.id`
+- `facturas.suscripcion_id` → `suscripciones.id`
+- `pagos.factura_id` → `facturas.id`
+- `pagos_tarjeta.id` → `pagos.id`
+- `pagos_paypal.id` → `pagos.id`
+- `pagos_transferencia.id` → `pagos.id`
+
+---
+
+## 🔍 Análisis de Auditoría (Hibernate Envers)
+
+### Configuración Detectada
+
+✅ **Dependencia correcta en `pom.xml`:**
+```xml
+<dependency>
+    <groupId>org.hibernate.orm</groupId>
+    <artifactId>hibernate-envers</artifactId>
+</dependency>
+```
+
+✅ **Entidad auditada:**
+```java
+@Audited
+@Entity
+public class Suscripcion {
+    @Audited(targetAuditMode = NOT_AUDITED)
+    private Usuario usuario;
+    
+    @Audited(targetAuditMode = NOT_AUDITED)
+    private Plan plan;
+}
+```
+
+### Tablas de Auditoría Generadas
+
+Envers creará automáticamente:
+
+1. **`suscripciones_AUD`** - Histórico de cambios
+   - `id` (PK compuesta con REV)
+   - `REV` (número de revisión)
+   - `REVTYPE` (0=ADD, 1=MOD, 2=DEL)
+   - `usuario_id`
+   - `plan_id`
+   - `estado`
+   - `fechaInicio`
+   - `fechaFinCiclo`
+   - `fechaCancelacion`
+
+2. **`REVINFO`** - Información de revisiones
+   - `REV` (PK)
+   - `REVTSTMP` (timestamp)
+
+### Ejemplo de Consulta de Historial
+
+```java
+AuditReader reader = AuditReaderFactory.get(entityManager);
+List<Number> revisions = reader.getRevisions(Suscripcion.class, suscripcionId);
+
+for (Number rev : revisions) {
+    Suscripcion historico = reader.find(Suscripcion.class, suscripcionId, rev);
+    // Ver estado anterior de la suscripción
+}
+```
+
+---
+
+## ⚠️ Observaciones y Recomendaciones
+
+### 🟢 Fortalezas del Modelo
+
+1. ✅ **Normalización correcta** - Sin redundancias
+2. ✅ **Herencia bien implementada** - Estrategia JOINED es la más normalizada
+3. ✅ **Auditoría configurada** - Envers funcionará correctamente
+4. ✅ **Relaciones bien definidas** - Cardinalidades correctas
+5. ✅ **Inmutabilidad** - Entidades sin setters innecesarios
+6. ✅ **Constraints adecuados** - UNIQUE, NOT NULL bien aplicados
+
+### 🟡 Mejoras Sugeridas (Opcionales)
+
+#### 1. **Tipos de datos monetarios**
+```java
+// Cambiar de Double a BigDecimal
+@Column(nullable = false, precision = 10, scale = 2)
+private BigDecimal precioMensual;
+```
+
+#### 2. **Validaciones adicionales**
+```java
+@Email
+@Column(nullable = false, unique = true)
+private String email;
+
+@Pattern(regexp = "^[A-Z]{2}\\d{2}.*$")
+private String iban;
+```
+
+#### 3. **Índices para rendimiento**
+```java
+@Table(name = "facturas", indexes = {
+    @Index(name = "idx_factura_suscripcion", columnList = "suscripcion_id"),
+    @Index(name = "idx_factura_fecha", columnList = "fecha")
+})
+```
+
+#### 4. **Cascadas en relaciones**
+```java
+@OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
+private Perfil perfil;
+```
+
+#### 5. **Auditoría adicional**
+Si quieres auditar también `Plan` (para ver cambios de precios):
+```java
+@Audited
+@Entity
+public class Plan { ... }
+```
+
+### 🔴 Errores Críticos Detectados
+
+**NINGUNO** ✅ - El modelo está bien diseñado y cumple todos los requisitos.
+
+---
+
+## 📝 Conclusión Final
+
+### ✅ **VEREDICTO: MODELO APROBADO**
+
+Tu modelo de datos:
+- ✅ Cumple **100% del enunciado**
+- ✅ Está bien normalizado
+- ✅ Usa correctamente Hibernate Envers
+- ✅ Implementa herencia de tablas adecuadamente
+- ✅ Tiene relaciones bien definidas
+- ✅ Sigue buenas prácticas de JPA
+
+### 🎯 Próximos Pasos Recomendados
+
+1. **Implementar validaciones** con Bean Validation (`@Email`, `@NotBlank`, etc.)
+2. **Crear tests unitarios** para las entidades
+3. **Probar la auditoría** creando/modificando suscripciones y consultando el historial
+4. **Considerar DTOs** para la capa de presentación
+5. **Documentar** el modelo con JavaDoc
+
+---
+
+## 📚 Referencias
+
+- [Hibernate Envers Documentation](https://hibernate.org/orm/envers/)
+- [JPA Inheritance Strategies](https://www.baeldung.com/hibernate-inheritance)
+- [Spring Data JPA Best Practices](https://www.baeldung.com/spring-data-jpa-query)
+
+---
+
+**Análisis realizado por:** Antigravity AI  
+**Fecha:** 2026-02-05  
+**Proyecto:** proyecto-saas (Spring Boot 4.0.2 + JPA + Hibernate Envers)
