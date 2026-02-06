@@ -43,7 +43,7 @@ public class RegistroController {
         Usuario usuario = registroService.registrar(email, pais, nombre, apellidos, telefono, planId);
         return "redirect:/dashboard/" + usuario.getId();
     }
-    
+
     @GetMapping("/dashboard/{usuarioId}")
     public String dashboard(@PathVariable Long usuarioId, Model model) {
         var dto = registroService.getDashboard(usuarioId);
