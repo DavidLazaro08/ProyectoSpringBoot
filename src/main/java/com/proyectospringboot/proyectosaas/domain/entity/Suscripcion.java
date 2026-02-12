@@ -91,6 +91,10 @@ public class Suscripcion {
         this.estado = estado;
     }
 
+    public void setFechaFinCiclo(LocalDateTime fechaFinCiclo) {
+        this.fechaFinCiclo = fechaFinCiclo;
+    }
+
     public void cancelar() {
         this.estado = EstadoSuscripcion.CANCELADA;
         this.fechaCancelacion = LocalDateTime.now();

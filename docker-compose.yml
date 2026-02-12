@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: proyecto_saas_db
+    environment:
+      POSTGRES_DB: proyecto_saas
+      POSTGRES_USER: odoo
+      POSTGRES_PASSWORD: odoo
+    ports:
+      - "5433:5432"
+    volumes:
+      - proyecto_saas_pgdata:/var/lib/postgresql/data
+
+volumes:
+  proyecto_saas_pgdata:

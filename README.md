@@ -7,6 +7,33 @@ Este repositorio contiene la **implementación del core de una plataforma SaaS**
 
 ---
 
+## Levantar Base de Datos (PostgreSQL con Docker)
+
+Este proyecto utiliza PostgreSQL. Para poder ejecutarlo correctamente, es necesario levantar previamente la base de datos mediante Docker.
+
+### Pasos:
+
+1. Tener Docker instalado.
+2. Desde la raíz del proyecto ejecutar:
+
+   ```bash
+   docker compose up -d
+   ```
+
+3. Arrancar la aplicación Spring Boot desde IntelliJ o con:
+
+   ```bash
+   mvn spring-boot:run
+   ```
+
+La base de datos se levantará en `localhost:5433` y Hibernate creará/actualizará automáticamente las tablas gracias a la configuración:
+
+```properties
+spring.jpa.hibernate.ddl-auto=update
+```
+
+---
+
 ## 📌 Objetivo del proyecto
 
 El objetivo del proyecto es desarrollar la base de una plataforma SaaS que permita:

@@ -8,6 +8,8 @@ import com.proyectospringboot.proyectosaas.repository.SuscripcionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -46,9 +48,15 @@ public class FacturaService {
                     "Aún no toca renovar. Próxima renovación: " + suscripcion.getFechaFinCiclo());
         }
 
+        BigDecimal importeBase = suscripcion.getPlan().getPrecioMensual();
+        BigDecimal impuesto = calcularImpuesto(suscripcion, importeBase);
+        BigDecimal total = importeBase.add(impuesto);
+
         Factura nuevaFactura = new Factura(
                 suscripcion,
-                suscripcion.getPlan().getPrecioMensual(),
+                importeBase,
+                impuesto,
+                total,
                 LocalDateTime.now());
         facturaRepository.save(nuevaFactura);
 
@@ -65,9 +73,15 @@ public class FacturaService {
 
         int contador = 0;
         for (Suscripcion suscripcion : suscripcionesVencidas) {
+            BigDecimal importeBase = suscripcion.getPlan().getPrecioMensual();
+            BigDecimal impuesto = calcularImpuesto(suscripcion, importeBase);
+            BigDecimal total = importeBase.add(impuesto);
+
             Factura nuevaFactura = new Factura(
                     suscripcion,
-                    suscripcion.getPlan().getPrecioMensual(),
+                    importeBase,
+                    impuesto,
+                    total,
                     LocalDateTime.now());
             facturaRepository.save(nuevaFactura);
 
@@ -78,6 +92,17 @@ public class FacturaService {
         }
 
         return contador;
+    }
+
+    private BigDecimal calcularImpuesto(Suscripcion suscripcion, BigDecimal importeBase) {
+        String pais = suscripcion.getUsuario().getPais();
+
+        if ("ES".equalsIgnoreCase(pais)) {
+            return importeBase.multiply(BigDecimal.valueOf(0.21))
+                    .setScale(2, RoundingMode.HALF_UP);
+        }
+
+        return BigDecimal.ZERO;
     }
 
     public record RenovacionResultado(

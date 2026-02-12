@@ -24,14 +24,23 @@ public class Factura {
     private BigDecimal importe;
 
     @Column(nullable = false)
+    private BigDecimal impuesto;
+
+    @Column(nullable = false)
+    private BigDecimal total;
+
+    @Column(nullable = false)
     private LocalDateTime fecha;
 
     protected Factura() {
     }
 
-    public Factura(Suscripcion suscripcion, BigDecimal importe, LocalDateTime fecha) {
+    public Factura(Suscripcion suscripcion, BigDecimal importe, BigDecimal impuesto, BigDecimal total,
+            LocalDateTime fecha) {
         this.suscripcion = suscripcion;
         this.importe = importe;
+        this.impuesto = impuesto;
+        this.total = total;
         this.fecha = fecha;
     }
 
@@ -45,6 +54,14 @@ public class Factura {
 
     public BigDecimal getImporte() {
         return importe;
+    }
+
+    public BigDecimal getImpuesto() {
+        return impuesto;
+    }
+
+    public BigDecimal getTotal() {
+        return total;
     }
 
     public LocalDateTime getFecha() {

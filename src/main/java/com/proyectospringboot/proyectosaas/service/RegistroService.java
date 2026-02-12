@@ -45,10 +45,22 @@ public class RegistroService {
                 Suscripcion s = new Suscripcion(u, plan);
                 s = suscripcionRepository.save(s);
 
-                Factura f = new Factura(s, plan.getPrecioMensual(), LocalDateTime.now());
+                BigDecimal importeBase = plan.getPrecioMensual();
+                BigDecimal impuesto = calcularImpuesto(pais, importeBase);
+                BigDecimal total = importeBase.add(impuesto);
+
+                Factura f = new Factura(s, importeBase, impuesto, total, LocalDateTime.now());
                 facturaRepository.save(f);
 
                 return u;
+        }
+
+        private BigDecimal calcularImpuesto(String pais, BigDecimal importeBase) {
+                if ("ES".equalsIgnoreCase(pais)) {
+                        return importeBase.multiply(BigDecimal.valueOf(0.21))
+                                        .setScale(2, java.math.RoundingMode.HALF_UP);
+                }
+                return BigDecimal.ZERO;
         }
 
         @Transactional(readOnly = true)

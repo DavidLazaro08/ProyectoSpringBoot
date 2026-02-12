@@ -7,6 +7,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 
@@ -22,11 +23,9 @@ public class FacturaController {
     @GetMapping("/facturas")
     public String mostrarFacturas(
             @RequestParam(required = false) String email,
-            @RequestParam(required = false) String mensaje,
             Model model) {
 
         model.addAttribute("email", email != null ? email : "");
-        model.addAttribute("mensaje", mensaje);
 
         if (email != null && !email.isBlank()) {
             List<Factura> facturas = facturaService.buscarFacturasPorEmail(email);
@@ -37,8 +36,12 @@ public class FacturaController {
     }
 
     @PostMapping("/facturas/renovar")
-    public String renovar(@RequestParam String email) {
+    public String renovar(@RequestParam String email, RedirectAttributes redirectAttributes) {
         var resultado = facturaService.renovarSiToca(email);
-        return "redirect:/facturas?email=" + email + "&mensaje=" + resultado.mensaje();
+
+        redirectAttributes.addFlashAttribute("mensaje", resultado.mensaje());
+        redirectAttributes.addFlashAttribute("tipoMensaje", resultado.exito() ? "exito" : "error");
+
+        return "redirect:/facturas?email=" + email;
     }
 }
