@@ -3,30 +3,195 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard</title>
+    <title>Dashboard - Proyecto SaaS</title>
+    <!-- Usamos styles.css para mantener coherencia con Register/Auditoria -->
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <style>
+        /* Estilos específicos para dashboard cards que extienden styles.css */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            border: 1px solid #eee;
+        }
+
+        .card h3 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+            display: inline-block;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .stat-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #000;
+            margin-bottom: 10px;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #007bff;
+            color: #007bff;
+            padding: 8px 15px;
+            text-decoration: none;
+            border-radius: 4px;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        .btn-outline:hover {
+            background: #f0f8ff;
+        }
+
+        .pago-option {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .pago-option:hover {
+            background: #f9f9f9;
+        }
+
+        .pago-option label {
+            cursor: pointer;
+            display: block;
+            width: 100%;
+            font-weight: bold;
+        }
+    </style>
 </head>
 
 <body>
 
-    <h2 th:text="'Hola ' + ${dash.nombreCompleto}"></h2>
+    <div class="container" style="max-width: 1000px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h1>Mi Perfil</h1>
+            <a th:href="@{/}" style="color: #666; text-decoration: none;">← Volver al Inicio</a>
+        </div>
 
-    <p><b>Email:</b> <span th:text="${dash.email}"></span></p>
-    <p><b>País:</b> <span th:text="${dash.pais}"></span></p>
+        <!-- Mensajes Flash -->
+        <div th:if="${mensaje}" th:class="'mensaje ' + ${tipoMensaje != null ? tipoMensaje : 'exito'}"
+            th:text="${mensaje}" style="padding: 15px; margin-bottom: 20px; border-radius: 4px;"
+            th:styleappend="${tipoMensaje == 'error'} ? 'background:#f8d7da; color:#721c24;' : 'background:#d4edda; color:#155724;'">
+        </div>
 
-    <hr>
+        <div class="dashboard-grid">
+            <!-- Tarjeta Usuario y Plan -->
+            <div class="card">
+                <h3>Suscripción</h3>
+                <div class="stat-label">Usuario</div>
+                <div class="stat-value"
+                    th:text="${usuario.perfil != null ? usuario.perfil.nombre + ' ' + usuario.perfil.apellidos : usuario.email}">
+                    Usuario</div>
 
-    <p><b>Tu plan es:</b> <span th:text="${dash.planNombre}"></span></p>
-    <p><b>Estado suscripción:</b> <span th:text="${dash.estado}"></span></p>
+                <div class="stat-label">Plan Actual</div>
+                <div class="stat-value" th:text="${suscripcion.plan.nombre}" style="color: #007bff;">Plan</div>
 
-    <hr>
+                <div class="stat-label">Estado</div>
+                <div class="stat-value">
+                    <span th:text="${suscripcion.estado}"
+                        th:style="${suscripcion.estado.name() == 'ACTIVA' ? 'color:green' : 'color:red'}">
+                    </span>
+                </div>
 
-    <p><b>Última factura:</b></p>
-    <p>Importe: <span th:text="${dash.importeFactura != null ? dash.importeFactura : '—'}"></span> €</p>
-    <p>Fecha: <span th:text="${dash.fechaFactura != null ? dash.fechaFactura : '—'}"></span></p>
+                <div class="stat-label">Próxima Renovación</div>
+                <div class="stat-value" th:text="${#temporals.format(suscripcion.fechaFinCiclo, 'dd/MM/yyyy HH:mm')}">
+                    Fecha</div>
 
-    <hr>
+                <form action="/facturas/renovar" method="post" style="margin-top: 15px;">
+                    <input type="hidden" name="email" th:value="${email}">
+                    <!-- Redirigir de vuelta al dashboard tras renovar sería ideal, 
+                     pero el controller actual redirige a facturas. 
+                     Para el MVP, aceptamos ir a facturas o ajustamos el controller después. -->
+                    <button type="submit" class="btn" style="width: 100%;">Renovar Ahora (Demo)</button>
+                </form>
+            </div>
 
-    <p><a th:href="@{/facturas(email=${dash.email})}">Ver todas mis facturas</a></p>
+            <!-- Tarjeta Facturación -->
+            <div class="card">
+                <h3>Facturación</h3>
+                <div th:if="${ultimaFactura != null}">
+                    <div class="stat-label">Última Factura</div>
+                    <div class="stat-value" th:text="${#temporals.format(ultimaFactura.fecha, 'dd/MM/yyyy')}">Fecha
+                    </div>
+                    <div class="stat-value" th:text="${ultimaFactura.total + ' €'}">Total</div>
+
+                    <div style="margin-bottom: 10px;">
+                        <span th:if="${ultimaFacturaPagada}"
+                            style="background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 4px; font-size: 0.9em; font-weight: bold;">✔
+                            PAGADA</span>
+                        <span th:unless="${ultimaFacturaPagada}"
+                            style="background: #f8d7da; color: #721c24; padding: 4px 8px; border-radius: 4px; font-size: 0.9em; font-weight: bold;">⚠
+                            PENDIENTE DE PAGO</span>
+                    </div>
+                </div>
+                <div th:if="${ultimaFactura == null}">
+                    <p>No hay facturas registradas.</p>
+                </div>
+
+                <a th:href="@{/facturas(email=${email})}" class="btn-outline"
+                    style="width: 100%; text-align: center; margin-bottom: 10px;">Ver Mis Facturas</a>
+            </div>
+
+            <!-- Tarjeta Método de Pago (Demo) -->
+            <div class="card">
+                <h3
+                    th:text="${ultimaFacturaPagada != null && !ultimaFacturaPagada ? 'Pagar Pendiente' : 'Método de Pago (Demo)'}">
+                    Método de Pago</h3>
+                <p th:if="${ultimaFacturaPagada != null && !ultimaFacturaPagada}"
+                    style="font-size: 0.9em; color: #d9534f;">
+                    Selecciona un método para abonar tu factura pendiente:
+                </p>
+                <p th:unless="${ultimaFacturaPagada != null && !ultimaFacturaPagada}"
+                    style="font-size: 0.9em; color: #666;">
+                    Selecciona para simular la configuración de pago:
+                </p>
+
+                <form action="/dashboard/pago" method="post">
+                    <input type="hidden" name="email" th:value="${email}">
+
+                    <div class="pago-option">
+                        <label>
+                            <input type="radio" name="tipoPago" value="Tarjeta" checked> 💳 Tarjeta Crédito
+                        </label>
+                    </div>
+                    <div class="pago-option">
+                        <label>
+                            <input type="radio" name="tipoPago" value="PayPal"> 🅿️ PayPal
+                        </label>
+                    </div>
+                    <div class="pago-option">
+                        <label>
+                            <input type="radio" name="tipoPago" value="Transferencia"> 🏦 Transferencia
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn" style="background: #17a2b8; width: 100%;">Guardar Método /
+                        Pagar</button>
+                    <small style="display:block; margin-top:5px; color:#888;">* Esto creará un registro de pago asociado
+                        a tu próxima factura automático.</small>
+                </form>
+            </div>
+        </div>
+    </div>
 
 </body>
 

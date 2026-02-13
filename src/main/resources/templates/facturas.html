@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Facturas</title>
+    <title>Gestión de Facturas</title>
     <link rel="stylesheet" th:href="@{/css/facturas.css}">
 </head>
 
@@ -11,12 +11,49 @@
 
     <h1>Gestión de Facturas</h1>
 
-    <a href="/" class="nav-link">← Volver al inicio</a>
+    <div style="margin-bottom: 20px;">
+        <a th:href="@{/dashboard(email=${email})}" class="nav-link">← Volver al Dashboard</a>
+    </div>
 
     <div class="search-form">
         <form method="get" action="/facturas">
-            <input type="email" name="email" placeholder="Ingrese email del usuario" th:value="${email}" required>
-            <button type="submit">Buscar</button>
+            <div style="display: flex; gap: 10px;">
+                <input type="email" name="email" placeholder="Ingrese email del usuario" th:value="${email}" required>
+                <button type="submit">Buscar</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="search-form" th:if="${email != null and !email.isBlank()}">
+        <h3>Filtros opcionales</h3>
+        <form method="get" action="/facturas">
+            <input type="hidden" name="email" th:value="${email}">
+
+            <div class="filtros-grid">
+                <div>
+                    <label>Fecha inicio:</label>
+                    <input type="datetime-local" name="fechaInicio"
+                        th:value="${fechaInicio != null ? #strings.replace(#temporals.format(fechaInicio, 'yyyy-MM-dd HH:mm'), ' ', 'T') : ''}">
+                </div>
+
+                <div>
+                    <label>Fecha fin:</label>
+                    <input type="datetime-local" name="fechaFin"
+                        th:value="${fechaFin != null ? #strings.replace(#temporals.format(fechaFin, 'yyyy-MM-dd HH:mm'), ' ', 'T') : ''}">
+                </div>
+
+                <div>
+                    <label>Total mínimo (€):</label>
+                    <input type="number" step="0.01" name="totalMin" placeholder="Ej: 10.00" th:value="${totalMin}">
+                </div>
+
+                <div>
+                    <label>Total máximo (€):</label>
+                    <input type="number" step="0.01" name="totalMax" placeholder="Ej: 100.00" th:value="${totalMax}">
+                </div>
+            </div>
+
+            <button type="submit">Filtrar</button>
         </form>
     </div>
 
@@ -25,7 +62,12 @@
 
     <div th:if="${facturas != null}">
         <div th:if="${facturas.isEmpty()}" class="no-facturas">
-            <p>No se encontraron facturas para este email.</p>
+            <p th:if="${fechaInicio != null or fechaFin != null or totalMin != null or totalMax != null}">
+                No hay facturas que cumplan los filtros aplicados.
+            </p>
+            <p th:unless="${fechaInicio != null or fechaFin != null or totalMin != null or totalMax != null}">
+                No se encontraron facturas para este email.
+            </p>
         </div>
 
         <div th:if="${!facturas.isEmpty()}">

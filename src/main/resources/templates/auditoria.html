@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Panel de Auditoría</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Panel de Auditoría (Admin)</h1>
+
+        <div class="text-center" style="margin-bottom: 20px;">
+            <a href="/" style="color: #6c757d; text-decoration: none;">← Volver al inicio</a>
+        </div>
+
+        <!-- Mensaje de error controlado -->
+        <div th:if="${error}" class="mensaje error" th:text="${error}"
+            style="background: #f8d7da; color: #721c24; padding: 10px; margin-bottom: 20px; border: 1px solid #f5c6cb; border-radius: 4px;">
+        </div>
+
+        <!-- Mensaje de migración si hubo -->
+        <div th:if="${mensaje}" class="mensaje exito" th:text="${mensaje}"></div>
+
+        <!-- Nota sobre seguridad -->
+        <div class="mensaje" style="background: #fff3cd; color: #856404; border: 1px solid #ffeaa7;">
+            <strong>Nota:</strong> Este panel es solo para demostración. En producción debería estar protegido con
+            autenticación y roles de administrador.
+        </div>
+
+        <h2>Historial de Cambios (Envers)</h2>
+
+        <div th:if="${revisiones == null or revisiones.isEmpty()}" class="no-facturas">
+            <p>No hay revisiones registradas aún.</p>
+        </div>
+
+        <table th:if="${revisiones != null and !revisiones.isEmpty()}">
+            <thead>
+                <tr>
+                    <th>Fecha Revisión</th>
+                    <th>Entidad</th>
+                    <th>ID</th>
+                    <th>Email Usuario</th>
+                    <th>Resumen Cambio</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="rev : ${revisiones}">
+                    <td th:text="${#temporals.format(rev.fechaRevision, 'dd/MM/yyyy HH:mm:ss')}"></td>
+                    <td th:text="${rev.entidad}"></td>
+                    <td th:text="${rev.idEntidad}"></td>
+                    <td th:text="${rev.emailUsuario}"></td>
+                    <td th:text="${rev.resumenCambio}"></td>
+                </tr>
+            </tbody>
+        </table>
+
+</body>
+
+</html>

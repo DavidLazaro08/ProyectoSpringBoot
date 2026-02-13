@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>SaaS Project - Home</title>
+    <!-- Mantenemos un estilo embebido similar al original para esta vista simple -->
+    <!-- o si existía otro CSS previo, pero el styles.css rompió el layout -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f9;
+            text-align: center;
+            /* Centrado global como antes */
+        }
+
+        .home-container {
+            max-width: 600px;
+            margin: 50px auto;
+            text-align: center;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn {
+            display: inline-block;
+            margin: 10px;
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .access-form {
+            margin-top: 30px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+            /* Centramos el contenido dentro del form */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .access-form input {
+            padding: 10px;
+            width: 70%;
+            max-width: 300px;
+            margin-bottom: 15px;
+            /* Espaciado con el botón */
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .login-notice {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="home-container">
+        <h1>Bienvenido a SaaS Project</h1>
+        <p>Plataforma de gestión de suscripciones</p>
+
+        <a href="/registro" class="btn">Registrar Nuevo Usuario</a>
+
+        <div class="access-form">
+            <h3>Acceder</h3>
+            <form action="/dashboard/acceder" method="post" style="width: 100%; text-align: center;">
+                <input type="email" name="email" placeholder="Introduce tu email..." required>
+                <br>
+                <button type="submit" class="btn btn-secondary">Acceder al Dashboard</button>
+                <p class="login-notice">(Próximamente generaremos un login real completo)</p>
+            </form>
+        </div>
+
+        <div style="margin-top: 30px;">
+            <a href="/admin/auditoria" class="btn warning" style="background: #ffc107; color: #333;">Panel Auditoría
+                (Admin)</a>
+        </div>
+    </div>
+
+</body>
+
+</html>

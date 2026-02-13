@@ -55,8 +55,12 @@ public class RegistroService {
                 return u;
         }
 
+        // Mismo cálculo de impuestos que en FacturaService (21% para España)
         private BigDecimal calcularImpuesto(String pais, BigDecimal importeBase) {
-                if ("ES".equalsIgnoreCase(pais)) {
+                // Acepta ES, España, spain (case-insensitive)
+                if (pais != null && (pais.equalsIgnoreCase("ES") ||
+                                pais.equalsIgnoreCase("España") ||
+                                pais.equalsIgnoreCase("Spain"))) {
                         return importeBase.multiply(BigDecimal.valueOf(0.21))
                                         .setScale(2, java.math.RoundingMode.HALF_UP);
                 }

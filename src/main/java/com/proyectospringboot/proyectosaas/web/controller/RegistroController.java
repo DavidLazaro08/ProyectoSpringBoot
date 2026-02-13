@@ -24,30 +24,30 @@ public class RegistroController {
         this.registroService = registroService;
     }
 
-    @GetMapping("/register")
+    @GetMapping("/registro")
     public String showRegister(Model model) {
         List<Plan> planes = planRepository.findAll();
         model.addAttribute("planes", planes);
         return "register";
     }
 
-    @PostMapping("/register")
+    @PostMapping("/registro")
     public String doRegister(
             @RequestParam String email,
             @RequestParam String pais,
             @RequestParam String nombre,
             @RequestParam String apellidos,
             @RequestParam(required = false) String telefono,
-            @RequestParam Long planId
-    ) {
+            @RequestParam Long planId) {
         Usuario usuario = registroService.registrar(email, pais, nombre, apellidos, telefono, planId);
-        return "redirect:/dashboard/" + usuario.getId();
+        return "redirect:/dashboard?email=" + usuario.getEmail();
     }
 
-    @GetMapping("/dashboard/{usuarioId}")
-    public String dashboard(@PathVariable Long usuarioId, Model model) {
-        var dto = registroService.getDashboard(usuarioId);
-        model.addAttribute("dash", dto);
-        return "dashboard";
-    }
+    // El dashboard ahora se gestiona en DashboardController (/dashboard?email=...)
+    // Eliminamos el método antiguo que mapeaba /dashboard/{id} para evitar
+    // confusiones
+    /*
+     * @GetMapping("/dashboard/{usuarioId}")
+     * public String dashboard(@PathVariable Long usuarioId, Model model) { ... }
+     */
 }
