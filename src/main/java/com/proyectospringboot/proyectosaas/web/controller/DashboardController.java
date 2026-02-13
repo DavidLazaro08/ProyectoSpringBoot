@@ -30,7 +30,7 @@ public class DashboardController {
         }
 
         // Buscar suscripción (y usuario)
-        var suscripcionOpt = suscripcionRepository.findByUsuarioEmail(email);
+        var suscripcionOpt = suscripcionRepository.buscarPorEmail(email);
         if (suscripcionOpt.isEmpty()) {
             return "redirect:/?error=Usuario no encontrado";
         }
@@ -60,7 +60,7 @@ public class DashboardController {
     @PostMapping("/acceder")
     public String acceder(@RequestParam String email, RedirectAttributes redirectAttributes) {
         // Redirige al dashboard validando email
-        var suscripcionOpt = suscripcionRepository.findByUsuarioEmail(email);
+        var suscripcionOpt = suscripcionRepository.buscarPorEmail(email);
         if (suscripcionOpt.isEmpty()) {
             redirectAttributes.addFlashAttribute("error", "El email introductido no existe en nuestra base de datos.");
             return "redirect:/";
@@ -73,7 +73,7 @@ public class DashboardController {
             @RequestParam String tipoPago,
             RedirectAttributes redirectAttributes) {
         try {
-            facturaService.registrarPagoDemo(email, tipoPago);
+            facturaService.registrarPagoPrueba(email, tipoPago);
             redirectAttributes.addFlashAttribute("mensaje",
                     "Método de pago registrado (Demo: " + tipoPago + ") y vinculado a tu próxima factura.");
             redirectAttributes.addFlashAttribute("tipoMensaje", "exito");

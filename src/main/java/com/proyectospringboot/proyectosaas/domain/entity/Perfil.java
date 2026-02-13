@@ -2,13 +2,18 @@ package com.proyectospringboot.proyectosaas.domain.entity;
 
 import jakarta.persistence.*;
 
-/* Entidad que almacena información adicional del usuario.
- * Se mantiene separada para evitar sobrecargar la entidad Usuario
- * y facilitar la extensibilidad del modelo. */
+/* Perfil:
+ * Información personal adicional del usuario.
+ * Lo separamos de Usuario para mantener el modelo más limpio
+ * y permitir ampliaciones futuras sin sobrecargar la entidad principal. */
 
 @Entity
 @Table(name = "perfiles")
 public class Perfil {
+
+    // =========================================================
+    // CAMPOS
+    // =========================================================
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,7 +32,12 @@ public class Perfil {
     @JoinColumn(name = "usuario_id", nullable = false, unique = true)
     private Usuario usuario;
 
+    // =========================================================
+    // CONSTRUCTORES
+    // =========================================================
+
     protected Perfil() {
+        // Constructor requerido por JPA
     }
 
     public Perfil(Usuario usuario, String nombre, String apellidos, String telefono) {
@@ -36,6 +46,10 @@ public class Perfil {
         this.apellidos = apellidos;
         this.telefono = telefono;
     }
+
+    // =========================================================
+    // GETTERS
+    // =========================================================
 
     public Long getId() {
         return id;

@@ -3,13 +3,17 @@ package com.proyectospringboot.proyectosaas.domain.entity;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
-/* Entidad que representa a un usuario del sistema.
- * Contiene los datos básicos de identificación y se asocia
- * a un perfil y a una suscripción activa. */
+/* Usuario:
+ * Representa a un usuario registrado en la plataforma.
+ * Contiene datos básicos y se relaciona con Perfil y Suscripción. */
 
 @Entity
 @Table(name = "usuarios")
 public class Usuario {
+
+    // =========================================================
+    // CAMPOS
+    // =========================================================
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,7 +31,12 @@ public class Usuario {
     @OneToOne(mappedBy = "usuario")
     private Perfil perfil;
 
+    // =========================================================
+    // CONSTRUCTORES
+    // =========================================================
+
     protected Usuario() {
+        // Constructor requerido por JPA
     }
 
     public Usuario(String email, String pais) {
@@ -35,6 +44,10 @@ public class Usuario {
         this.pais = pais;
         this.fechaAlta = LocalDateTime.now();
     }
+
+    // =========================================================
+    // GETTERS
+    // =========================================================
 
     public Long getId() {
         return id;

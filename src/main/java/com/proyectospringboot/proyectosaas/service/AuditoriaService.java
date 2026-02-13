@@ -6,12 +6,18 @@ import jakarta.persistence.EntityManager;
 import org.hibernate.envers.AuditReader;
 import org.hibernate.envers.AuditReaderFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+
+/* AuditoriaService
+ *
+ * Semana 2 - usamos Envers para poder ver el historial de cambios.
+ * Aquí montamos un listado “tipo timeline” con las revisiones de Suscripción. */
 
 @Service
 public class AuditoriaService {
@@ -20,65 +26,71 @@ public class AuditoriaService {
         private final SuscripcionRepository suscripcionRepository;
 
         public AuditoriaService(EntityManager entityManager,
-                        SuscripcionRepository suscripcionRepository) {
+                                SuscripcionRepository suscripcionRepository) {
                 this.entityManager = entityManager;
                 this.suscripcionRepository = suscripcionRepository;
         }
 
-        @org.springframework.transaction.annotation.Transactional(readOnly = true)
+        // =========================================================
+        // HISTORIAL DE CAMBIOS (Envers)
+        // =========================================================
+
+        @Transactional(readOnly = true)
         public List<RevisionDTO> obtenerHistorialCambios() {
+
                 AuditReader auditReader = AuditReaderFactory.get(entityManager);
                 List<RevisionDTO> revisiones = new ArrayList<>();
 
-                // Obtener todas las suscripciones para luego buscar sus revisiones
+                // Recorremos suscripciones y sacamos sus revisiones.
                 List<Suscripcion> suscripciones = suscripcionRepository.findAll();
 
                 for (Suscripcion suscripcion : suscripciones) {
-                        // Obtener números de revisión para esta suscripción
-                        List<Number> revisionNumbers = auditReader.getRevisions(Suscripcion.class, suscripcion.getId());
+
+                        List<Number> revisionNumbers =
+                                auditReader.getRevisions(Suscripcion.class, suscripcion.getId());
 
                         for (Number revNumber : revisionNumbers) {
-                                // Obtener la entidad en esa revisión
-                                Suscripcion suscripcionEnRevision = auditReader.find(Suscripcion.class,
-                                                suscripcion.getId(), revNumber);
 
-                                // Obtener fecha de la revisión
-                                // Obtener fecha de la revisión
+                                Suscripcion suscripcionEnRevision =
+                                        auditReader.find(Suscripcion.class, suscripcion.getId(), revNumber);
+
                                 LocalDateTime fechaRevision = LocalDateTime.ofInstant(
-                                                Instant.ofEpochMilli(auditReader.getRevisionDate(revNumber).getTime()),
-                                                ZoneId.systemDefault());
+                                        Instant.ofEpochMilli(auditReader.getRevisionDate(revNumber).getTime()),
+                                        ZoneId.systemDefault()
+                                );
 
-                                String emailUsuario = suscripcionEnRevision.getUsuario() != null
-                                                ? suscripcionEnRevision.getUsuario().getEmail()
-                                                : "N/A";
+                                String emailUsuario = (suscripcionEnRevision.getUsuario() != null)
+                                        ? suscripcionEnRevision.getUsuario().getEmail()
+                                        : "N/A";
 
                                 String nombrePlan = (suscripcionEnRevision.getPlan() != null)
-                                                ? suscripcionEnRevision.getPlan().getNombre()
-                                                : "Plan desconocido";
+                                        ? suscripcionEnRevision.getPlan().getNombre()
+                                        : "Plan desconocido";
 
-                                String resumenCambio = "Plan: " + nombrePlan +
-                                                ", Estado: " + suscripcionEnRevision.getEstado();
+                                String resumenCambio = "Plan: " + nombrePlan
+                                        + ", Estado: " + suscripcionEnRevision.getEstado();
 
                                 revisiones.add(new RevisionDTO(
-                                                fechaRevision,
-                                                "Suscripcion",
-                                                suscripcion.getId(),
-                                                emailUsuario,
-                                                resumenCambio));
+                                        fechaRevision,
+                                        "Suscripcion",
+                                        suscripcion.getId(),
+                                        emailUsuario,
+                                        resumenCambio
+                                ));
                         }
                 }
 
-                // Ordenar por fecha descendente
+                // Más reciente primero.
                 revisiones.sort((r1, r2) -> r2.fechaRevision().compareTo(r1.fechaRevision()));
 
                 return revisiones;
         }
 
         public record RevisionDTO(
-                        LocalDateTime fechaRevision,
-                        String entidad,
-                        Long idEntidad,
-                        String emailUsuario,
-                        String resumenCambio) {
+                LocalDateTime fechaRevision,
+                String entidad,
+                Long idEntidad,
+                String emailUsuario,
+                String resumenCambio) {
         }
 }

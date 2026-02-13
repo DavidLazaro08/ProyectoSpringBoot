@@ -7,6 +7,17 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
+
+/* RegistroService
+ *
+ * Se encarga del alta completa de un usuario:
+ * - Usuario
+ * - Perfil
+ * - Suscripción
+ * - Primera factura
+ *
+ * También construye los datos necesarios para el dashboard. */
 
 @Service
 public class RegistroService {
@@ -17,11 +28,13 @@ public class RegistroService {
         private final PlanRepository planRepository;
         private final FacturaRepository facturaRepository;
 
-        public RegistroService(UsuarioRepository usuarioRepository,
+        public RegistroService(
+                        UsuarioRepository usuarioRepository,
                         PerfilRepository perfilRepository,
                         SuscripcionRepository suscripcionRepository,
                         PlanRepository planRepository,
                         FacturaRepository facturaRepository) {
+
                 this.usuarioRepository = usuarioRepository;
                 this.perfilRepository = perfilRepository;
                 this.suscripcionRepository = suscripcionRepository;
@@ -29,72 +42,101 @@ public class RegistroService {
                 this.facturaRepository = facturaRepository;
         }
 
+        // =========================================================
+        // REGISTRO
+        // =========================================================
+
         @Transactional
-        public Usuario registrar(String email, String pais, String nombre, String apellidos, String telefono,
+        public Usuario registrar(String email,
+                        String pais,
+                        String nombre,
+                        String apellidos,
+                        String telefono,
                         Long planId) {
 
-                Usuario u = new Usuario(email, pais);
-                u = usuarioRepository.save(u);
+                Usuario usuario = new Usuario(email, pais);
+                usuario = usuarioRepository.save(usuario);
 
-                Perfil p = new Perfil(u, nombre, apellidos, telefono);
-                perfilRepository.save(p);
+                Perfil perfil = new Perfil(usuario, nombre, apellidos, telefono);
+                perfilRepository.save(perfil);
 
                 Plan plan = planRepository.findById(planId)
                                 .orElseThrow(() -> new IllegalArgumentException("Plan no existe: " + planId));
 
-                Suscripcion s = new Suscripcion(u, plan);
-                s = suscripcionRepository.save(s);
+                Suscripcion suscripcion = new Suscripcion(usuario, plan);
+                suscripcion = suscripcionRepository.save(suscripcion);
 
                 BigDecimal importeBase = plan.getPrecioMensual();
                 BigDecimal impuesto = calcularImpuesto(pais, importeBase);
                 BigDecimal total = importeBase.add(impuesto);
 
-                Factura f = new Factura(s, importeBase, impuesto, total, LocalDateTime.now());
-                facturaRepository.save(f);
+                Factura factura = new Factura(
+                                suscripcion,
+                                importeBase,
+                                impuesto,
+                                total,
+                                LocalDateTime.now());
 
-                return u;
+                facturaRepository.save(factura);
+
+                return usuario;
         }
 
-        // Mismo cálculo de impuestos que en FacturaService (21% para España)
+        // Cálculo sencillo de IVA (21% si el usuario es de España)
         private BigDecimal calcularImpuesto(String pais, BigDecimal importeBase) {
-                // Acepta ES, España, spain (case-insensitive)
-                if (pais != null && (pais.equalsIgnoreCase("ES") ||
-                                pais.equalsIgnoreCase("España") ||
-                                pais.equalsIgnoreCase("Spain"))) {
+
+                if (pais != null &&
+                                (pais.equalsIgnoreCase("ES")
+                                                || pais.equalsIgnoreCase("España")
+                                                || pais.equalsIgnoreCase("Spain"))) {
+
                         return importeBase.multiply(BigDecimal.valueOf(0.21))
                                         .setScale(2, java.math.RoundingMode.HALF_UP);
                 }
+
                 return BigDecimal.ZERO;
         }
 
+        // =========================================================
+        // DASHBOARD
+        // =========================================================
+
         @Transactional(readOnly = true)
         public DashboardDTO getDashboard(Long usuarioId) {
-                Usuario u = usuarioRepository.findById(usuarioId)
+
+                Usuario usuario = usuarioRepository.findById(usuarioId)
                                 .orElseThrow(() -> new IllegalArgumentException("Usuario no existe: " + usuarioId));
 
-                Perfil perfil = perfilRepository.findByUsuarioId(usuarioId)
+                Perfil perfil = perfilRepository.buscarPorUsuarioId(usuarioId)
                                 .orElseThrow(() -> new IllegalArgumentException("Perfil no existe"));
 
-                Suscripcion sus = suscripcionRepository.findByUsuarioId(usuarioId)
+                Suscripcion suscripcion = suscripcionRepository.buscarPorUsuarioId(usuarioId)
                                 .orElseThrow(() -> new IllegalArgumentException("Suscripción no existe"));
 
-                Factura ultima = facturaRepository.findTopBySuscripcionIdOrderByFechaDesc(sus.getId())
-                                .orElse(null);
+                List<Factura> facturas = facturaRepository.buscarPorSuscripcionOrdenadas(suscripcion.getId());
+
+                Factura ultima = facturas.isEmpty() ? null : facturas.get(0);
 
                 String nombreCompleto = perfil.getNombre() + " " + perfil.getApellidos();
 
                 BigDecimal importeFactura = (ultima != null) ? ultima.getImporte() : null;
+
                 String fechaFactura = (ultima != null) ? ultima.getFecha().toString() : null;
 
                 return new DashboardDTO(
                                 nombreCompleto,
-                                u.getEmail(),
-                                u.getPais(),
-                                sus.getPlan().getNombre(),
-                                sus.getEstado().name(),
+                                usuario.getEmail(),
+                                usuario.getPais(),
+                                suscripcion.getPlan().getNombre(),
+                                suscripcion.getEstado().name(),
                                 importeFactura,
                                 fechaFactura);
         }
+
+        /*
+         * DTO simple para devolver los datos del panel.
+         * Lo dejamos como record para no crear una clase aparte.
+         */
 
         public record DashboardDTO(
                         String nombreCompleto,
@@ -104,6 +146,8 @@ public class RegistroService {
                         String estado,
                         BigDecimal importeFactura,
                         String fechaFactura) {
+
+                // Getters clásicos para compatibilidad con vistas
                 public String getNombreCompleto() {
                         return nombreCompleto;
                 }
@@ -132,5 +176,4 @@ public class RegistroService {
                         return fechaFactura;
                 }
         }
-
 }

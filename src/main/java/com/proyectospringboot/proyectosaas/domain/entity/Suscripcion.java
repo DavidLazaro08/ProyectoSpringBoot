@@ -8,14 +8,18 @@ import java.time.LocalDateTime;
 import org.hibernate.envers.Audited;
 import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 
-/* Entidad que vincula a un usuario con un plan.
- * Registra el estado de la suscripción y permite
- * auditar los cambios de plan mediante Envers. */
+/* Suscripcion:
+ * Relaciona un Usuario con un Plan.
+ * Guarda estado, fechas y permite auditar cambios con Envers. */
 
 @Audited
 @Entity
 @Table(name = "suscripciones")
 public class Suscripcion {
+
+    // =========================================================
+    // CAMPOS
+    // =========================================================
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -44,7 +48,12 @@ public class Suscripcion {
     @Column(name = "fecha_cancelacion")
     private LocalDateTime fechaCancelacion;
 
+    // =========================================================
+    // CONSTRUCTORES
+    // =========================================================
+
     protected Suscripcion() {
+        // Constructor requerido por JPA
     }
 
     public Suscripcion(Usuario usuario, Plan plan) {
@@ -52,8 +61,12 @@ public class Suscripcion {
         this.plan = plan;
         this.estado = EstadoSuscripcion.ACTIVA;
         this.fechaInicio = LocalDateTime.now();
-        this.fechaFinCiclo = this.fechaInicio.plusDays(30);
+        this.fechaFinCiclo = this.fechaInicio.plusDays(30); // Simplificación mensual
     }
+
+    // =========================================================
+    // GETTERS
+    // =========================================================
 
     public Long getId() {
         return id;
@@ -83,6 +96,10 @@ public class Suscripcion {
         return fechaCancelacion;
     }
 
+    // =========================================================
+    // MODIFICADORES DE ESTADO
+    // =========================================================
+
     public void setPlan(Plan plan) {
         this.plan = plan;
     }
@@ -99,5 +116,4 @@ public class Suscripcion {
         this.estado = EstadoSuscripcion.CANCELADA;
         this.fechaCancelacion = LocalDateTime.now();
     }
-
 }

@@ -47,86 +47,50 @@ El trabajo se desarrolla **por semanas**, siguiendo una planificación increment
 
 ---
 
-## 🗓️ Estado actual — SEMANA 1
+## 🗓️ Estado actual — SEMANA 2 (Completada)
 
-En esta primera fase se ha trabajado exclusivamente el **modelo de datos y su validación básica**, cumpliendo los siguientes puntos:
+Se ha implementado la lógica de negocio y la gestión avanzada de planes y facturación.
 
-### Modelo de datos
-Se han definido las siguientes entidades principales:
+### Funcionalidades Implementadas
+- **Renovación de suscripciones**: Lógica para cerrar ciclos de facturación y abrir nuevos.
+- **Cálculo de impuestos**: Sistema dinámico basado en el país del usuario (España 21%, USA 10%, Francia 20%, etc.).
+- **Facturación**:
+  - Generación automática de facturas al renovar.
+  - Vistas con filtros por fecha y monto (JPA Criteria / Specifications).
+  - Descarga simulada de PDF.
+- **Pagos**:
+  - Simulación de pasarela de pago (éxito/fallo aleatorio).
+  - Gestión de estados de suscripción (ACTIVA, PENDIENTE_PAGO, CANCELADA).
+- **Auditoría (Admin)**:
+  - Panel de administrador protegido con clave simple.
+  - Visualización de historial de cambios en suscripciones (Envers) para ver quién cambió de plan y cuándo.
 
-- **Usuario**
-- **Perfil**
-- **Plan** (Basic, Premium, Enterprise)
-- **Suscripción**
-- **Factura**
-- **Pago** (herencia: Tarjeta, PayPal, Transferencia)
+### Refactorización y Calidad
+- Métodos de repositorios en español y optimizados (`buscarPorUsuarioId`, `buscarVencidas`).
+- Uso de DTOs para transferir datos a la vista (`DashboardDTO`, `FacturaFiltroDTO`).
 
-El modelo está normalizado y preparado para soportar cambios futuros.
+### 📸 Capturas de Pantalla
 
-### JPA e Hibernate
-- Uso de **Spring Data JPA**
-- Enumeración `EstadoSuscripcion`:
-  - `ACTIVA`
-  - `CANCELADA`
-  - `MOROSA`
-- Auditoría de cambios mediante **Hibernate Envers**, aplicada sobre la entidad `Suscripcion` para registrar cambios de plan y fechas.
+| Home | Registro |
+| :---: | :---: |
+| ![Home](src/main/resources/capturas/01%20Home.png) | ![Registro](src/main/resources/capturas/02%20Registro.png) |
 
-### Persistencia
-- Base de datos relacional **PostgreSQL**
-- Configuración mediante `application.properties`
+| Dashboard | Facturas |
+| :---: | :---: |
+| ![Dashboard](src/main/resources/capturas/03%20Dashboard.png) | ![Facturas](src/main/resources/capturas/04%20Facturas.png) |
 
-### Vistas (Thymeleaf)
-Se han implementado vistas funcionales mínimas para validar el flujo:
-
-1. Registro de usuario
-2. Selección de plan
-3. Vista de resultado con confirmación de la suscripción  
-   (ejemplo: *“Hola X, tu plan es Y”*)
-
-No se ha priorizado la estética, sino la validación funcional.
-
-### Datos de prueba
-Existe una clase `DataInitializer` utilizada **únicamente durante el desarrollo** para:
-- Cargar datos iniciales
-- Probar el funcionamiento de la auditoría con Envers
-
-No forma parte de la lógica de negocio final.
+| Panel Admin (Auditoría) |
+| :---: |
+| ![Admin](src/main/resources/capturas/05%20Admin.png) |
 
 ---
 
-## 🧱 Arquitectura
+## 📈 Próximas fases (Roadmap)
 
-El proyecto sigue una arquitectura **MVC** clara:
-
-- `domain` → Entidades JPA
-- `repository` → Repositorios Spring Data
-- `service` → Lógica de negocio
-- `controller` → Controladores web
-- `templates` → Vistas Thymeleaf
-
----
-
-## 🛠️ Tecnologías utilizadas
-
-- Java
-- Spring Boot
-- Spring Data JPA
-- Hibernate + Envers
-- PostgreSQL
-- Thymeleaf
-- Maven
-
----
-
-## 📈 Próximas fases (no implementadas aún)
-
-- Renovación automática de suscripciones
-- Cálculo de impuestos por país
-- Prorrateo al cambiar de plan
-- Filtros de facturación
-- Pruebas unitarias con JUnit
-- Mejora de la interfaz de usuario
-- Documentación final del proyecto
+- Implementación de seguridad real con Spring Security (Login/Roles)
+- API REST para consumo externo
+- Pruebas unitarias con JUnit y Mockito (Cobertura > 80%)
+- Despliegue en entorno Cloud (Docker Compose + Render/AWS)
 
 ---
 

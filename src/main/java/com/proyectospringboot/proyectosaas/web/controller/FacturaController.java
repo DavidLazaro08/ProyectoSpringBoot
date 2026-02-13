@@ -26,8 +26,8 @@ public class FacturaController {
     @GetMapping("/facturas")
     public String mostrarFacturas(
             @RequestParam(required = false) String email,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fechaInicio,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fechaFin,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm") LocalDateTime fechaInicio,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm") LocalDateTime fechaFin,
             @RequestParam(required = false) BigDecimal totalMin,
             @RequestParam(required = false) BigDecimal totalMax,
             Model model) {
@@ -92,4 +92,5 @@ public class FacturaController {
 
         return "redirect:/facturas?email=" + email;
     }
+
 }

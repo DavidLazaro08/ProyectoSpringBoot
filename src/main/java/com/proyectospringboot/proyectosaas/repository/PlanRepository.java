@@ -3,8 +3,9 @@ package com.proyectospringboot.proyectosaas.repository;
 import com.proyectospringboot.proyectosaas.domain.entity.Plan;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-/* Repositorio JPA para la entidad Plan.
- * Permite operaciones CRUD sin implementar código SQL. */
+/* PlanRepository:
+ * Acceso a los planes disponibles (Basic, Premium, etc.).
+ * De momento solo usamos las operaciones básicas de JPA. */
 
 public interface PlanRepository extends JpaRepository<Plan, Long> {
 

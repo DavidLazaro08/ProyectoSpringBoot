@@ -3,13 +3,21 @@ package com.proyectospringboot.proyectosaas.domain.entity;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 
-/* Representa un plan de suscripción disponible en la plataforma
- * (Basic, Premium, Enterprise), con su precio y características.
- * Se trata de un catálogo estable. */
+/*
+ * Plan:
+ * Catálogo de planes disponibles en la plataforma
+ * (Basic, Premium, Enterprise).
+ *
+ * Es una entidad estable que define precio y nombre.
+ */
 
 @Entity
 @Table(name = "planes")
 public class Plan {
+
+    // =========================================================
+    // CAMPOS
+    // =========================================================
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,13 +29,22 @@ public class Plan {
     @Column(nullable = false)
     private BigDecimal precioMensual;
 
-    public Plan() {
+    // =========================================================
+    // CONSTRUCTORES
+    // =========================================================
+
+    protected Plan() {
+        // Constructor requerido por JPA
     }
 
     public Plan(String nombre, BigDecimal precioMensual) {
         this.nombre = nombre;
         this.precioMensual = precioMensual;
     }
+
+    // =========================================================
+    // GETTERS / SETTERS
+    // =========================================================
 
     public Long getId() {
         return id;
