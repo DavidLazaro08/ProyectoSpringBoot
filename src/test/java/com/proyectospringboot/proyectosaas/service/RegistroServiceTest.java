@@ -25,9 +25,21 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+/* RegistroServiceTest
+ *
+ * Probamos la lógica del alta completa de usuario sin arrancar Spring ni base de datos.
+ * El servicio depende de varios repositorios y de FacturaService, así que usamos Mockito
+ * para simular esas dependencias y centrarnos únicamente en la lógica.
+ *
+ * Comprobamos:
+ * - Que si el email es nuevo, se crean Usuario + Perfil + Suscripción + Factura.
+ * - Que si el email ya existe, se lanza excepción y no se guarda nada.
+ */
 
 @ExtendWith(MockitoExtension.class)
 class RegistroServiceTest {
@@ -54,26 +66,25 @@ class RegistroServiceTest {
     private RegistroService registroService;
 
     @Test
-    void registrar_ok_crea_todo() {
-        // GIVEN
+    void registrar_emailNuevo_creaUsuarioPerfilSuscripcionYFactura() {
+
         String email = "nuevo@test.com";
         String pais = "ES";
         Long planId = 1L;
+
         Plan plan = new Plan("BASIC", new BigDecimal("10.00"));
 
         when(usuarioRepository.buscarPorEmail(email)).thenReturn(Optional.empty());
         when(planRepository.findById(planId)).thenReturn(Optional.of(plan));
-        when(facturaService.calcularImpuesto(eq(pais), any(BigDecimal.class))).thenReturn(new BigDecimal("2.10"));
+        when(facturaService.calcularImpuesto(eq(pais), any(BigDecimal.class)))
+                .thenReturn(new BigDecimal("2.10"));
 
-        // Mock saves to return objects
         when(usuarioRepository.save(any(Usuario.class))).thenAnswer(i -> i.getArguments()[0]);
         when(perfilRepository.save(any(Perfil.class))).thenAnswer(i -> i.getArguments()[0]);
         when(suscripcionRepository.save(any(Suscripcion.class))).thenAnswer(i -> i.getArguments()[0]);
 
-        // WHEN
         Usuario resultado = registroService.registrar(email, pais, "Nom", "Ape", "600", planId);
 
-        // THEN
         assertNotNull(resultado);
         assertEquals(email, resultado.getEmail());
 
@@ -81,31 +92,31 @@ class RegistroServiceTest {
         verify(perfilRepository).save(any(Perfil.class));
         verify(suscripcionRepository).save(any(Suscripcion.class));
 
-        // Verificación de Factura
         ArgumentCaptor<Factura> facturaCaptor = ArgumentCaptor.forClass(Factura.class);
         verify(facturaRepository).save(facturaCaptor.capture());
 
         Factura facturaGuardada = facturaCaptor.getValue();
         assertEquals("Alta de Suscripción", facturaGuardada.getConcepto());
 
-        // 10.00 + 2.10 = 12.10
         BigDecimal totalEsperado = new BigDecimal("12.10");
         assertEquals(0, facturaGuardada.getTotal().compareTo(totalEsperado));
     }
 
     @Test
-    void registrar_email_duplicado_lanza_excepcion() {
-        // GIVEN
-        String email = "yaexiste@test.com";
-        when(usuarioRepository.buscarPorEmail(email)).thenReturn(Optional.of(new Usuario()));
+    void registrar_emailDuplicado_lanzaExcepcionYNoGuardaNada() {
 
-        // WHEN & THEN
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> registroService.registrar(email, "ES", "Nom", "Ape", "600", 1L));
+        String email = "yaexiste@test.com";
+
+        Usuario usuarioMock = mock(Usuario.class);
+        when(usuarioRepository.buscarPorEmail(email)).thenReturn(Optional.of(usuarioMock));
+
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
+                () -> registroService.registrar(email, "ES", "Nom", "Ape", "600", 1L)
+        );
 
         assertEquals("Ya existe un usuario con ese email.", ex.getMessage());
 
-        // Verificamos que NO se guardó nada
         verify(usuarioRepository, never()).save(any());
         verify(perfilRepository, never()).save(any());
         verify(suscripcionRepository, never()).save(any());

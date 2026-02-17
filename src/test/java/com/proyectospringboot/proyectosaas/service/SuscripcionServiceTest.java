@@ -4,6 +4,7 @@ import com.proyectospringboot.proyectosaas.domain.entity.Factura;
 import com.proyectospringboot.proyectosaas.domain.entity.Plan;
 import com.proyectospringboot.proyectosaas.domain.entity.Suscripcion;
 import com.proyectospringboot.proyectosaas.domain.entity.Usuario;
+import com.proyectospringboot.proyectosaas.domain.enums.EstadoSuscripcion;
 import com.proyectospringboot.proyectosaas.repository.FacturaRepository;
 import com.proyectospringboot.proyectosaas.repository.PlanRepository;
 import com.proyectospringboot.proyectosaas.repository.SuscripcionRepository;
@@ -15,6 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -50,98 +52,106 @@ class SuscripcionServiceTest {
     @BeforeEach
     void setUp() {
         usuario = new Usuario("test@test.com", "ES");
+
         planBasic = new Plan("BASIC", new BigDecimal("10.00"));
         planPremium = new Plan("PREMIUM", new BigDecimal("50.00"));
 
-        // Simulamos que el usuario tiene el plan BASIC
+        // En tests unitarios no hay BD, así que el id no se genera solo.
+        // Como el servicio compara por id, se lo asignamos manualmente.
+        ponerId(planBasic, 2L);
+        ponerId(planPremium, 1L);
+
         suscripcion = new Suscripcion(usuario, planBasic);
-        // Ponemos fecha fin ciclo dentro de 15 días para probar prorrateo
+
+        // Dejamos el ciclo a mitad de camino para que haya prorrateo en un upgrade
         suscripcion.setFechaFinCiclo(LocalDateTime.now().plusDays(15).plusHours(1));
+        suscripcion.setEstado(EstadoSuscripcion.ACTIVA);
     }
 
     @Test
-    void testUpgradeGeneraFactura() {
-        // GIVEN
-        when(suscripcionRepository.buscarPorUsuarioId(1L)).thenReturn(Optional.of(suscripcion));
-        when(planRepository.findById(2L)).thenReturn(Optional.of(planPremium));
-        // Mock de impuestos: 4.20
-        when(facturaService.calcularImpuesto(anyString(), any(BigDecimal.class))).thenReturn(new BigDecimal("4.20"));
+    void cambiarPlan_upgrade_generaFacturaProrrateo() {
 
-        // WHEN
-        suscripcionService.cambiarPlan(1L, 2L);
+        when(suscripcionRepository.buscarPorUsuarioId(1L))
+                .thenReturn(Optional.of(suscripcion));
 
-        // THEN
-        // 1. El plan debe haber cambiado
+        when(planRepository.findById(1L))
+                .thenReturn(Optional.of(planPremium));
+
+        // Para este test no nos interesa el cálculo real del impuesto: lo fijamos a mano
+        when(facturaService.calcularImpuesto(anyString(), any(BigDecimal.class)))
+                .thenReturn(new BigDecimal("4.20"));
+
+        suscripcionService.cambiarPlan(1L, 1L);
+
         assertEquals(planPremium, suscripcion.getPlan());
-
-        // 2. Se debe haber guardado la suscripción
         verify(suscripcionRepository).save(suscripcion);
 
-        // 3. Se debe haber generado una factura de prorrateo
         ArgumentCaptor<Factura> facturaCaptor = ArgumentCaptor.forClass(Factura.class);
         verify(facturaRepository).save(facturaCaptor.capture());
 
         Factura facturaGenerada = facturaCaptor.getValue();
 
-        // Diferencia: 50 - 10 = 40.
-        // Días restantes: 15. Factor = 15/30 = 0.5.
-        // Prorrateo esperado: 20.00
         BigDecimal importeEsperado = new BigDecimal("20.00");
-
-        // Comprobaciones robustas con compareTo (evita problemas de escala 20 vs 20.00)
         assertEquals(0, facturaGenerada.getImporte().compareTo(importeEsperado),
-                "El importe prorrateado debe ser 20.00");
+                "El importe prorrateado debe coincidir con lo esperado");
 
-        // Total esperado: 20.00 + 4.20 (impuesto mockeado) = 24.20
         BigDecimal totalEsperado = importeEsperado.add(new BigDecimal("4.20"));
         assertEquals(0, facturaGenerada.getTotal().compareTo(totalEsperado),
                 "El total debe ser la suma de base + impuesto");
 
-        // Verificamos concepto
         assertTrue(facturaGenerada.getConcepto().contains("Cambio de plan"));
     }
 
     @Test
-    void testDowngradeNoGeneraFactura() {
-        // GIVEN: Usuario tiene Premium y baja a Basic
+    void cambiarPlan_downgrade_noGeneraFactura() {
+
         suscripcion.setPlan(planPremium);
 
-        when(suscripcionRepository.buscarPorUsuarioId(1L)).thenReturn(Optional.of(suscripcion));
-        when(planRepository.findById(2L)).thenReturn(Optional.of(planBasic));
+        when(suscripcionRepository.buscarPorUsuarioId(1L))
+                .thenReturn(Optional.of(suscripcion));
 
-        // WHEN
+        when(planRepository.findById(2L))
+                .thenReturn(Optional.of(planBasic));
+
         suscripcionService.cambiarPlan(1L, 2L);
 
-        // THEN
-        // 1. El plan cambia
         assertEquals(planBasic, suscripcion.getPlan());
 
-        // 2. NO se genera factura
         verify(facturaRepository, never()).save(any(Factura.class));
-
-        // 3. Ni se calculan impuestos
         verify(facturaService, never()).calcularImpuesto(anyString(), any(BigDecimal.class));
-
-        // 4. Pero SÍ se guarda la suscripción con el nuevo plan
         verify(suscripcionRepository).save(suscripcion);
     }
 
     @Test
-    void testCambioPlan_NoActiva_LanzaExcepcion() {
-        // GIVEN: Suscripción cancelada
-        suscripcion.setEstado(com.proyectospringboot.proyectosaas.domain.enums.EstadoSuscripcion.CANCELADA);
+    void cambiarPlan_suscripcionNoActiva_lanzaExcepcion() {
 
-        when(suscripcionRepository.buscarPorUsuarioId(1L)).thenReturn(Optional.of(suscripcion));
+        suscripcion.setEstado(EstadoSuscripcion.CANCELADA);
 
-        // WHEN & THEN
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
-            suscripcionService.cambiarPlan(1L, 2L);
-        });
+        when(suscripcionRepository.buscarPorUsuarioId(1L))
+                .thenReturn(Optional.of(suscripcion));
+
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
+                () -> suscripcionService.cambiarPlan(1L, 2L)
+        );
 
         assertTrue(ex.getMessage().contains("no está activa"));
 
-        // No se guarda nada
         verify(suscripcionRepository, never()).save(any());
         verify(facturaRepository, never()).save(any());
+    }
+
+    // =========================================================
+    // UTILIDAD DE TEST (solo aquí)
+    // =========================================================
+
+    private void ponerId(Plan plan, Long id) {
+        try {
+            Field field = Plan.class.getDeclaredField("id");
+            field.setAccessible(true);
+            field.set(plan, id);
+        } catch (Exception e) {
+            throw new RuntimeException("No se pudo asignar el id al Plan en el test", e);
+        }
     }
 }
