@@ -92,6 +92,26 @@ Se ha implementado la lógica de negocio y la gestión avanzada de planes y fact
 - Pruebas unitarias con JUnit y Mockito (Cobertura > 80%)
 - Despliegue en entorno Cloud (Docker Compose + Render/AWS)
 
+## ✅ Pruebas Unitarias (JUnit)
+
+Se han implementado tests para asegurar la lógica crítica del negocio. Dado que es un **MVP Académico**, no hemos buscado cobertura 100%, sino probar lo importante:
+
+### Ejecutar Tests
+Desde IntelliJ: Click derecho en folder `src/test/java` -> `Run 'All Tests'`
+
+Desde Maven:
+```bash
+mvn test
+```
+
+### Casos Cubiertos
+1. **Impuestos**: Verificación de regla 21% (ES) vs 0% (Resto).
+2. **Renovación**: Solo se cobra cuando la fecha ha vencido.
+3. **Prorrateo**:
+   - Upgrade (Basic -> Premium): Cobra diferencia prorrateada.
+   - Downgrade (Premium -> Basic): No cobra nada.
+4. **Facturación Masiva**: El proceso batch genera N facturas correctamente.
+
 ---
 
 ## 📂 Control de versiones

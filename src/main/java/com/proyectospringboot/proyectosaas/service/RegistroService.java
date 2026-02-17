@@ -27,19 +27,22 @@ public class RegistroService {
         private final SuscripcionRepository suscripcionRepository;
         private final PlanRepository planRepository;
         private final FacturaRepository facturaRepository;
+        private final FacturaService facturaService;
 
         public RegistroService(
                         UsuarioRepository usuarioRepository,
                         PerfilRepository perfilRepository,
                         SuscripcionRepository suscripcionRepository,
                         PlanRepository planRepository,
-                        FacturaRepository facturaRepository) {
+                        FacturaRepository facturaRepository,
+                        FacturaService facturaService) {
 
                 this.usuarioRepository = usuarioRepository;
                 this.perfilRepository = perfilRepository;
                 this.suscripcionRepository = suscripcionRepository;
                 this.planRepository = planRepository;
                 this.facturaRepository = facturaRepository;
+                this.facturaService = facturaService;
         }
 
         // =========================================================
@@ -67,34 +70,20 @@ public class RegistroService {
                 suscripcion = suscripcionRepository.save(suscripcion);
 
                 BigDecimal importeBase = plan.getPrecioMensual();
-                BigDecimal impuesto = calcularImpuesto(pais, importeBase);
+                BigDecimal impuesto = facturaService.calcularImpuesto(pais, importeBase);
                 BigDecimal total = importeBase.add(impuesto);
 
                 Factura factura = new Factura(
                                 suscripcion,
+                                LocalDateTime.now(),
                                 importeBase,
                                 impuesto,
                                 total,
-                                LocalDateTime.now());
+                                "Alta de Suscripción");
 
                 facturaRepository.save(factura);
 
                 return usuario;
-        }
-
-        // Cálculo sencillo de IVA (21% si el usuario es de España)
-        private BigDecimal calcularImpuesto(String pais, BigDecimal importeBase) {
-
-                if (pais != null &&
-                                (pais.equalsIgnoreCase("ES")
-                                                || pais.equalsIgnoreCase("España")
-                                                || pais.equalsIgnoreCase("Spain"))) {
-
-                        return importeBase.multiply(BigDecimal.valueOf(0.21))
-                                        .setScale(2, java.math.RoundingMode.HALF_UP);
-                }
-
-                return BigDecimal.ZERO;
         }
 
         // =========================================================

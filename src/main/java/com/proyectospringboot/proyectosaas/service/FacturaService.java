@@ -13,12 +13,10 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/* FacturaService:
- * - Semana 2 - Generamos facturas cuando vence el ciclo de una suscripción.
- * - Calculamos el impuesto por país (regla sencilla).
- * - Incluimos un par de utilidades que usamos durante el desarrollo (pagos / migración). */
 @Service
 public class FacturaService {
+
+    private static final String CONCEPTO_RENOVACION = "Renovación Mensual";
 
     private final FacturaRepository facturaRepository;
     private final SuscripcionRepository suscripcionRepository;
@@ -81,10 +79,11 @@ public class FacturaService {
 
         Factura nuevaFactura = new Factura(
                 suscripcion,
+                LocalDateTime.now(),
                 importeBase,
                 impuesto,
                 total,
-                LocalDateTime.now());
+                CONCEPTO_RENOVACION);
         facturaRepository.save(nuevaFactura);
 
         suscripcion.setFechaFinCiclo(suscripcion.getFechaFinCiclo().plusDays(30));
@@ -107,10 +106,11 @@ public class FacturaService {
 
             Factura nuevaFactura = new Factura(
                     suscripcion,
+                    LocalDateTime.now(),
                     importeBase,
                     impuesto,
                     total,
-                    LocalDateTime.now());
+                    CONCEPTO_RENOVACION);
             facturaRepository.save(nuevaFactura);
 
             suscripcion.setFechaFinCiclo(suscripcion.getFechaFinCiclo().plusDays(30));
@@ -161,9 +161,11 @@ public class FacturaService {
     // IMPUESTOS (Semana 2)
     // =========================================================
 
-    private BigDecimal calcularImpuesto(Suscripcion suscripcion, BigDecimal importeBase) {
-        String pais = suscripcion.getUsuario().getPais();
+    public BigDecimal calcularImpuesto(Suscripcion suscripcion, BigDecimal importeBase) {
+        return calcularImpuesto(suscripcion.getUsuario().getPais(), importeBase);
+    }
 
+    public BigDecimal calcularImpuesto(String pais, BigDecimal importeBase) {
         if (pais != null && (pais.equalsIgnoreCase("ES")
                 || pais.equalsIgnoreCase("España")
                 || pais.equalsIgnoreCase("Spain"))) {
@@ -192,10 +194,11 @@ public class FacturaService {
 
             facturaObjetivo = new Factura(
                     suscripcion,
+                    LocalDateTime.now(),
                     BigDecimal.ONE,
                     BigDecimal.ZERO,
                     BigDecimal.ONE,
-                    LocalDateTime.now());
+                    "Factura de Prueba");
             facturaRepository.save(facturaObjetivo);
 
         } else {
@@ -228,10 +231,11 @@ public class FacturaService {
                 // Factura 0€ solo para poder guardar un pago de prueba.
                 facturaObjetivo = new Factura(
                         suscripcion,
+                        LocalDateTime.now(),
                         BigDecimal.ZERO,
                         BigDecimal.ZERO,
                         BigDecimal.ZERO,
-                        LocalDateTime.now());
+                        "Factura de Prueba (0€)");
                 facturaRepository.save(facturaObjetivo);
             }
         }

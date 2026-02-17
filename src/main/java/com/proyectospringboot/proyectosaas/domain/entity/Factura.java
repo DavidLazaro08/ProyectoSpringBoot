@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 /* Entidad Factura
  *
  * Representa una factura generada a partir de una suscripción.
- * Guarda un snapshot económico en el momento de creación:
+ * Importante: guarda un snapshot económico en el momento de creación:
  * importe base, impuesto aplicado y total final. */
 
 @Entity
@@ -17,7 +17,6 @@ public class Factura {
     // =========================================================
     // IDENTIFICADOR
     // =========================================================
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -25,15 +24,13 @@ public class Factura {
     // =========================================================
     // RELACIONES
     // =========================================================
-
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "suscripcion_id", nullable = false)
     private Suscripcion suscripcion;
 
     // =========================================================
-    // DATOS ECONÓMICOS
+    // DATOS ECONÓMICOS (snapshot)
     // =========================================================
-
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal importe;
 
@@ -46,35 +43,37 @@ public class Factura {
     // =========================================================
     // METADATOS
     // =========================================================
-
     @Column(nullable = false)
     private LocalDateTime fecha;
+
+    @Column(length = 100)
+    private String concepto;
 
     // =========================================================
     // CONSTRUCTORES
     // =========================================================
-
     protected Factura() {
         // Constructor requerido por JPA
     }
 
     public Factura(Suscripcion suscripcion,
+                   LocalDateTime fecha,
                    BigDecimal importe,
                    BigDecimal impuesto,
                    BigDecimal total,
-                   LocalDateTime fecha) {
+                   String concepto) {
 
         this.suscripcion = suscripcion;
+        this.fecha = fecha;
         this.importe = importe;
         this.impuesto = impuesto;
         this.total = total;
-        this.fecha = fecha;
+        this.concepto = concepto;
     }
 
     // =========================================================
     // GETTERS
     // =========================================================
-
     public Long getId() {
         return id;
     }
@@ -97,5 +96,9 @@ public class Factura {
 
     public LocalDateTime getFecha() {
         return fecha;
+    }
+
+    public String getConcepto() {
+        return concepto;
     }
 }
