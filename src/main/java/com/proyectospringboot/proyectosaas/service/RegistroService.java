@@ -1,7 +1,15 @@
 package com.proyectospringboot.proyectosaas.service;
 
-import com.proyectospringboot.proyectosaas.domain.entity.*;
-import com.proyectospringboot.proyectosaas.repository.*;
+import com.proyectospringboot.proyectosaas.domain.entity.Factura;
+import com.proyectospringboot.proyectosaas.domain.entity.Perfil;
+import com.proyectospringboot.proyectosaas.domain.entity.Plan;
+import com.proyectospringboot.proyectosaas.domain.entity.Suscripcion;
+import com.proyectospringboot.proyectosaas.domain.entity.Usuario;
+import com.proyectospringboot.proyectosaas.repository.FacturaRepository;
+import com.proyectospringboot.proyectosaas.repository.PerfilRepository;
+import com.proyectospringboot.proyectosaas.repository.PlanRepository;
+import com.proyectospringboot.proyectosaas.repository.SuscripcionRepository;
+import com.proyectospringboot.proyectosaas.repository.UsuarioRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,154 +23,136 @@ import java.util.List;
  * - Usuario
  * - Perfil
  * - Suscripción
- * - Primera factura
+ * - Primera factura (snapshot)
  *
- * También construye los datos necesarios para el dashboard. */
-
+ * Además, construye los datos básicos necesarios para el dashboard. */
 @Service
 public class RegistroService {
 
-        private final UsuarioRepository usuarioRepository;
-        private final PerfilRepository perfilRepository;
-        private final SuscripcionRepository suscripcionRepository;
-        private final PlanRepository planRepository;
-        private final FacturaRepository facturaRepository;
-        private final FacturaService facturaService;
+    private final UsuarioRepository usuarioRepository;
+    private final PerfilRepository perfilRepository;
+    private final SuscripcionRepository suscripcionRepository;
+    private final PlanRepository planRepository;
+    private final FacturaRepository facturaRepository;
+    private final FacturaService facturaService;
 
-        public RegistroService(
-                        UsuarioRepository usuarioRepository,
-                        PerfilRepository perfilRepository,
-                        SuscripcionRepository suscripcionRepository,
-                        PlanRepository planRepository,
-                        FacturaRepository facturaRepository,
-                        FacturaService facturaService) {
+    public RegistroService(UsuarioRepository usuarioRepository,
+                           PerfilRepository perfilRepository,
+                           SuscripcionRepository suscripcionRepository,
+                           PlanRepository planRepository,
+                           FacturaRepository facturaRepository,
+                           FacturaService facturaService) {
 
-                this.usuarioRepository = usuarioRepository;
-                this.perfilRepository = perfilRepository;
-                this.suscripcionRepository = suscripcionRepository;
-                this.planRepository = planRepository;
-                this.facturaRepository = facturaRepository;
-                this.facturaService = facturaService;
+        this.usuarioRepository = usuarioRepository;
+        this.perfilRepository = perfilRepository;
+        this.suscripcionRepository = suscripcionRepository;
+        this.planRepository = planRepository;
+        this.facturaRepository = facturaRepository;
+        this.facturaService = facturaService;
+    }
+
+    // =========================================================
+    // REGISTRO
+    // =========================================================
+
+    @Transactional
+    public Usuario registrar(String email,
+                             String pais,
+                             String nombre,
+                             String apellidos,
+                             String telefono,
+                             Long planId) {
+
+        // Validación básica: no permitir emails duplicados.
+        if (usuarioRepository.buscarPorEmail(email).isPresent()) {
+            throw new IllegalArgumentException("Ya existe un usuario con ese email.");
         }
 
-        // =========================================================
-        // REGISTRO
-        // =========================================================
+        Usuario usuario = new Usuario(email, pais);
+        usuario = usuarioRepository.save(usuario);
 
-        @Transactional
-        public Usuario registrar(String email,
-                        String pais,
-                        String nombre,
-                        String apellidos,
-                        String telefono,
-                        Long planId) {
+        Perfil perfil = new Perfil(usuario, nombre, apellidos, telefono);
+        perfilRepository.save(perfil);
 
-                Usuario usuario = new Usuario(email, pais);
-                usuario = usuarioRepository.save(usuario);
+        Plan plan = planRepository.findById(planId)
+                .orElseThrow(() -> new IllegalArgumentException("Plan no existe: " + planId));
 
-                Perfil perfil = new Perfil(usuario, nombre, apellidos, telefono);
-                perfilRepository.save(perfil);
+        Suscripcion suscripcion = new Suscripcion(usuario, plan);
+        suscripcion = suscripcionRepository.save(suscripcion);
 
-                Plan plan = planRepository.findById(planId)
-                                .orElseThrow(() -> new IllegalArgumentException("Plan no existe: " + planId));
+        // Primera factura (snapshot económico de alta)
+        BigDecimal importeBase = plan.getPrecioMensual();
+        BigDecimal impuesto = facturaService.calcularImpuesto(pais, importeBase);
+        BigDecimal total = importeBase.add(impuesto);
 
-                Suscripcion suscripcion = new Suscripcion(usuario, plan);
-                suscripcion = suscripcionRepository.save(suscripcion);
+        Factura factura = new Factura(
+                suscripcion,
+                LocalDateTime.now(),
+                importeBase,
+                impuesto,
+                total,
+                "Alta de Suscripción"
+        );
 
-                BigDecimal importeBase = plan.getPrecioMensual();
-                BigDecimal impuesto = facturaService.calcularImpuesto(pais, importeBase);
-                BigDecimal total = importeBase.add(impuesto);
+        facturaRepository.save(factura);
 
-                Factura factura = new Factura(
-                                suscripcion,
-                                LocalDateTime.now(),
-                                importeBase,
-                                impuesto,
-                                total,
-                                "Alta de Suscripción");
+        return usuario;
+    }
 
-                facturaRepository.save(factura);
+    // =========================================================
+    // DASHBOARD
+    // =========================================================
 
-                return usuario;
-        }
+    @Transactional(readOnly = true)
+    public DashboardDTO getDashboard(Long usuarioId) {
 
-        // =========================================================
-        // DASHBOARD
-        // =========================================================
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no existe: " + usuarioId));
 
-        @Transactional(readOnly = true)
-        public DashboardDTO getDashboard(Long usuarioId) {
+        Perfil perfil = perfilRepository.buscarPorUsuarioId(usuarioId)
+                .orElseThrow(() -> new IllegalArgumentException("Perfil no existe"));
 
-                Usuario usuario = usuarioRepository.findById(usuarioId)
-                                .orElseThrow(() -> new IllegalArgumentException("Usuario no existe: " + usuarioId));
+        Suscripcion suscripcion = suscripcionRepository.buscarPorUsuarioId(usuarioId)
+                .orElseThrow(() -> new IllegalArgumentException("Suscripción no existe"));
 
-                Perfil perfil = perfilRepository.buscarPorUsuarioId(usuarioId)
-                                .orElseThrow(() -> new IllegalArgumentException("Perfil no existe"));
+        List<Factura> facturas = facturaRepository.buscarPorSuscripcionOrdenadas(suscripcion.getId());
+        Factura ultima = facturas.isEmpty() ? null : facturas.get(0);
 
-                Suscripcion suscripcion = suscripcionRepository.buscarPorUsuarioId(usuarioId)
-                                .orElseThrow(() -> new IllegalArgumentException("Suscripción no existe"));
+        String nombreCompleto = perfil.getNombre() + " " + perfil.getApellidos();
+        BigDecimal importeFactura = (ultima != null) ? ultima.getImporte() : null;
 
-                List<Factura> facturas = facturaRepository.buscarPorSuscripcionOrdenadas(suscripcion.getId());
+        // Para la vista nos vale así. (lo formateamos más bonito después).
+        String fechaFactura = (ultima != null) ? ultima.getFecha().toString() : null;
 
-                Factura ultima = facturas.isEmpty() ? null : facturas.get(0);
+        return new DashboardDTO(
+                nombreCompleto,
+                usuario.getEmail(),
+                usuario.getPais(),
+                suscripcion.getPlan().getNombre(),
+                suscripcion.getEstado().name(),
+                importeFactura,
+                fechaFactura
+        );
+    }
 
-                String nombreCompleto = perfil.getNombre() + " " + perfil.getApellidos();
-
-                BigDecimal importeFactura = (ultima != null) ? ultima.getImporte() : null;
-
-                String fechaFactura = (ultima != null) ? ultima.getFecha().toString() : null;
-
-                return new DashboardDTO(
-                                nombreCompleto,
-                                usuario.getEmail(),
-                                usuario.getPais(),
-                                suscripcion.getPlan().getNombre(),
-                                suscripcion.getEstado().name(),
-                                importeFactura,
-                                fechaFactura);
-        }
-
-        /*
-         * DTO simple para devolver los datos del panel.
-         * Lo dejamos como record para no crear una clase aparte.
-         */
-
-        public record DashboardDTO(
-                        String nombreCompleto,
-                        String email,
-                        String pais,
-                        String planNombre,
-                        String estado,
-                        BigDecimal importeFactura,
-                        String fechaFactura) {
-
-                // Getters clásicos para compatibilidad con vistas
-                public String getNombreCompleto() {
-                        return nombreCompleto;
-                }
-
-                public String getEmail() {
-                        return email;
-                }
-
-                public String getPais() {
-                        return pais;
-                }
-
-                public String getPlanNombre() {
-                        return planNombre;
-                }
-
-                public String getEstado() {
-                        return estado;
-                }
-
-                public BigDecimal getImporteFactura() {
-                        return importeFactura;
-                }
-
-                public String getFechaFactura() {
-                        return fechaFactura;
-                }
-        }
+    /* DTO simple para devolver los datos del panel.
+     * Lo dejamos como record para no crear otra clase aparte. */
+    public record DashboardDTO(
+            String nombreCompleto,
+            String email,
+            String pais,
+            String planNombre,
+            String estado,
+            BigDecimal importeFactura,
+            String fechaFactura
+    ) {
+        // Getters (por si alguna vista/plantilla los necesita explícitos)
+        public String getNombreCompleto() { return nombreCompleto; }
+        public String getEmail() { return email; }
+        public String getPais() { return pais; }
+        public String getPlanNombre() { return planNombre; }
+        public String getEstado() { return estado; }
+        public BigDecimal getImporteFactura() { return importeFactura; }
+        public String getFechaFactura() { return fechaFactura; }
+    }
 }
