@@ -8,7 +8,8 @@ import java.time.LocalDateTime;
 import org.hibernate.envers.Audited;
 import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 
-/* Suscripcion:
+/* Entidad Suscripcion
+ *
  * Relaciona un Usuario con un Plan.
  * Guarda estado, fechas y permite auditar cambios con Envers. */
 

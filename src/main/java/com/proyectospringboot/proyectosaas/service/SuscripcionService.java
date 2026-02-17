@@ -3,6 +3,7 @@ package com.proyectospringboot.proyectosaas.service;
 import com.proyectospringboot.proyectosaas.domain.entity.Factura;
 import com.proyectospringboot.proyectosaas.domain.entity.Plan;
 import com.proyectospringboot.proyectosaas.domain.entity.Suscripcion;
+import com.proyectospringboot.proyectosaas.domain.enums.EstadoSuscripcion;
 import com.proyectospringboot.proyectosaas.repository.FacturaRepository;
 import com.proyectospringboot.proyectosaas.repository.PlanRepository;
 import com.proyectospringboot.proyectosaas.repository.SuscripcionRepository;
@@ -41,7 +42,11 @@ public class SuscripcionService {
     public void cambiarPlan(Long usuarioId, Long nuevoPlanId) {
         // 1. Obtener Suscripción (Activa o no, la traemos por usuario)
         Suscripcion suscripcion = suscripcionRepository.buscarPorUsuarioId(usuarioId)
-                .orElseThrow(() -> new IllegalArgumentException("El usuario no tiene suscripción activa."));
+                .orElseThrow(() -> new IllegalArgumentException("El usuario no tiene suscripción."));
+
+        if (suscripcion.getEstado() != EstadoSuscripcion.ACTIVA) {
+            throw new IllegalArgumentException("La suscripción no está activa.");
+        }
 
         // 2. Obtener Nuevo Plan
         Plan nuevoPlan = planRepository.findById(nuevoPlanId)

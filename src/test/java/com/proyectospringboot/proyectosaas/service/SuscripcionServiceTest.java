@@ -16,11 +16,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -56,7 +56,7 @@ class SuscripcionServiceTest {
         // Simulamos que el usuario tiene el plan BASIC
         suscripcion = new Suscripcion(usuario, planBasic);
         // Ponemos fecha fin ciclo dentro de 15 días para probar prorrateo
-        suscripcion.setFechaFinCiclo(LocalDateTime.now().plusDays(15));
+        suscripcion.setFechaFinCiclo(LocalDateTime.now().plusDays(15).plusHours(1));
     }
 
     @Test
@@ -64,7 +64,7 @@ class SuscripcionServiceTest {
         // GIVEN
         when(suscripcionRepository.buscarPorUsuarioId(1L)).thenReturn(Optional.of(suscripcion));
         when(planRepository.findById(2L)).thenReturn(Optional.of(planPremium));
-        // Mock de impuestos para evitar NullPointerException o ceros inesperados
+        // Mock de impuestos: 4.20
         when(facturaService.calcularImpuesto(anyString(), any(BigDecimal.class))).thenReturn(new BigDecimal("4.20"));
 
         // WHEN
@@ -83,7 +83,19 @@ class SuscripcionServiceTest {
 
         Factura facturaGenerada = facturaCaptor.getValue();
 
-        assertTrue(facturaGenerada.getImporte().compareTo(BigDecimal.ZERO) > 0);
+        // Diferencia: 50 - 10 = 40.
+        // Días restantes: 15. Factor = 15/30 = 0.5.
+        // Prorrateo esperado: 20.00
+        BigDecimal importeEsperado = new BigDecimal("20.00");
+
+        // Comprobaciones robustas con compareTo (evita problemas de escala 20 vs 20.00)
+        assertEquals(0, facturaGenerada.getImporte().compareTo(importeEsperado),
+                "El importe prorrateado debe ser 20.00");
+
+        // Total esperado: 20.00 + 4.20 (impuesto mockeado) = 24.20
+        BigDecimal totalEsperado = importeEsperado.add(new BigDecimal("4.20"));
+        assertEquals(0, facturaGenerada.getTotal().compareTo(totalEsperado),
+                "El total debe ser la suma de base + impuesto");
 
         // Verificamos concepto
         assertTrue(facturaGenerada.getConcepto().contains("Cambio de plan"));
@@ -106,5 +118,30 @@ class SuscripcionServiceTest {
 
         // 2. NO se genera factura
         verify(facturaRepository, never()).save(any(Factura.class));
+
+        // 3. Ni se calculan impuestos
+        verify(facturaService, never()).calcularImpuesto(anyString(), any(BigDecimal.class));
+
+        // 4. Pero SÍ se guarda la suscripción con el nuevo plan
+        verify(suscripcionRepository).save(suscripcion);
+    }
+
+    @Test
+    void testCambioPlan_NoActiva_LanzaExcepcion() {
+        // GIVEN: Suscripción cancelada
+        suscripcion.setEstado(com.proyectospringboot.proyectosaas.domain.enums.EstadoSuscripcion.CANCELADA);
+
+        when(suscripcionRepository.buscarPorUsuarioId(1L)).thenReturn(Optional.of(suscripcion));
+
+        // WHEN & THEN
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
+            suscripcionService.cambiarPlan(1L, 2L);
+        });
+
+        assertTrue(ex.getMessage().contains("no está activa"));
+
+        // No se guarda nada
+        verify(suscripcionRepository, never()).save(any());
+        verify(facturaRepository, never()).save(any());
     }
 }
