@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Objects;
 
 @Service
 public class SuscripcionService {
@@ -33,10 +34,12 @@ public class SuscripcionService {
         this.facturaService = facturaService;
     }
 
-    /* Cambia el plan de un usuario.
+    /*
+     * Cambia el plan de un usuario.
      * Si es un UPGRADE (precio nuevo > actual), cobra la diferencia prorrateada.
-     * Si es un DOWNGRADE o IGUAL, no cobra nada (MVP). */
-    
+     * Si es un DOWNGRADE o IGUAL, no cobra nada (MVP).
+     */
+
     @Transactional
     public void cambiarPlan(Long usuarioId, Long nuevoPlanId) {
         // 1. Obtener Suscripción (Activa o no, la traemos por usuario)
@@ -54,7 +57,7 @@ public class SuscripcionService {
         Plan planActual = suscripcion.getPlan();
 
         // 3. Validar que no sea el mismo plan
-        if (planActual.getId().equals(nuevoPlan.getId())) {
+        if (Objects.equals(planActual.getId(), nuevoPlanId)) {
             throw new IllegalArgumentException("El usuario ya tiene el plan " + nuevoPlan.getNombre());
         }
 
