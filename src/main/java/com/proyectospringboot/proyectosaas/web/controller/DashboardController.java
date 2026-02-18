@@ -74,11 +74,39 @@ public class DashboardController {
         String metodoPagoPreferido = suscripcion.getUsuario().getMetodoPagoPreferido();
         model.addAttribute("metodoPagoPreferido", metodoPagoPreferido != null ? metodoPagoPreferido : "Tarjeta");
 
+        // Estado de Pago Automático
+        model.addAttribute("pagoAutomatico", suscripcion.getUsuario().isPagoAutomatico());
+
         // Cargar todos los planes disponibles para cambio de plan
         List<Plan> planes = planRepository.findAll();
         model.addAttribute("planes", planes);
 
         return "dashboard";
+    }
+
+    @PostMapping("/pago-automatico")
+    public String activarPagoAutomatico(@AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(defaultValue = "false") boolean activo,
+            RedirectAttributes redirectAttributes) {
+        String email = userDetails.getUsername();
+
+        try {
+            var usuario = usuarioRepository.buscarPorEmail(email)
+                    .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+
+            usuario.setPagoAutomatico(activo);
+            usuarioRepository.save(usuario);
+
+            String estado = activo ? "activado" : "desactivado";
+            redirectAttributes.addFlashAttribute("mensaje", "Pago automático " + estado + " correctamente.");
+            redirectAttributes.addFlashAttribute("tipoMensaje", "exito");
+
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("mensaje", "Error al cambiar configuración: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("tipoMensaje", "error");
+        }
+
+        return "redirect:/dashboard";
     }
 
     @PostMapping("/pago")

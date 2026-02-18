@@ -25,6 +25,10 @@ erDiagram
         Long id PK
         String email UK "UNIQUE"
         String pais
+        String password
+        String rol "ENUM: USER, ADMIN"
+        Boolean pagoAutomatico "DEFAULT false"
+        String metodoPagoPreferido
         LocalDateTime fechaAlta
     }
 

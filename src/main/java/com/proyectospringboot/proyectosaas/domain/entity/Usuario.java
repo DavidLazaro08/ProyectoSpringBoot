@@ -32,6 +32,9 @@ public class Usuario {
     @Column(name = "metodo_pago_preferido", length = 50)
     private String metodoPagoPreferido; // "Tarjeta", "PayPal", "Transferencia"
 
+    @Column(name = "pago_automatico", nullable = false, columnDefinition = "boolean default false")
+    private boolean pagoAutomatico = false; // domiciliación activada por el usuario
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private RolUsuario rol;
@@ -94,11 +97,19 @@ public class Usuario {
         return metodoPagoPreferido;
     }
 
+    public boolean isPagoAutomatico() {
+        return pagoAutomatico;
+    }
+
     // =========================================================
     // SETTERS
     // =========================================================
 
     public void setMetodoPagoPreferido(String metodoPagoPreferido) {
         this.metodoPagoPreferido = metodoPagoPreferido;
+    }
+
+    public void setPagoAutomatico(boolean pagoAutomatico) {
+        this.pagoAutomatico = pagoAutomatico;
     }
 }

@@ -3,131 +3,162 @@
 Proyecto final desarrollado para la asignatura **Desarrollo de Interfaces**  
 Grado Superior en Desarrollo de Aplicaciones Multiplataforma (2º DAM).
 
-Este repositorio contiene la **implementación del core de una plataforma SaaS**, centrada en el diseño del modelo de datos, la persistencia con JPA/Hibernate y una validación funcional mínima mediante vistas Thymeleaf.
+Implementación del **core de una plataforma SaaS**: registro de usuarios, suscripciones a planes, facturación automática cada 30 días, prorrateo en cambios de plan, cálculo de impuestos por país y auditoría de cambios.
 
 ---
 
-## Levantar Base de Datos (PostgreSQL con Docker)
+## 🚀 Cómo ejecutar el proyecto
 
-Este proyecto utiliza PostgreSQL. Para poder ejecutarlo correctamente, es necesario levantar previamente la base de datos mediante Docker.
+### 1. Levantar la base de datos (PostgreSQL con Docker)
 
-### Pasos:
-
-1. Tener Docker instalado.
-2. Desde la raíz del proyecto ejecutar:
-
-   ```bash
-   docker compose up -d
-   ```
-
-3. Arrancar la aplicación Spring Boot desde IntelliJ o con:
-
-   ```bash
-   mvn spring-boot:run
-   ```
-
-La base de datos se levantará en `localhost:5433` y Hibernate creará/actualizará automáticamente las tablas gracias a la configuración:
-
-```properties
-spring.jpa.hibernate.ddl-auto=update
+```bash
+docker compose up -d
 ```
 
----
+La base de datos arranca en `localhost:5433`.
 
-## 📌 Objetivo del proyecto
+### 2. Arrancar la aplicación
 
-El objetivo del proyecto es desarrollar la base de una plataforma SaaS que permita:
+Desde IntelliJ o con Maven:
 
-- Registrar usuarios
-- Asociar una suscripción a un plan
-- Mantener un historial de cambios de suscripción
-- Sentar las bases para una futura facturación automática
+```bash
+mvn spring-boot:run
+```
 
-El trabajo se desarrolla **por semanas**, siguiendo una planificación incremental.
+Hibernate crea/actualiza las tablas automáticamente (`ddl-auto=update`).
 
----
+### 3. Acceder a la aplicación
 
-## 🗓️ Estado actual — SEMANA 2 (Completada)
+Abrir el navegador en: **`http://localhost:8080`**
 
-Se ha implementado la lógica de negocio y la gestión avanzada de planes y facturación.
-
-### Funcionalidades Implementadas
-- **Renovación de suscripciones**: Lógica para cerrar ciclos de facturación y abrir nuevos.
-- **Cálculo de impuestos**: Sistema dinámico basado en el país del usuario (España 21%, USA 10%, Francia 20%, etc.).
-- **Facturación**:
-  - Generación automática de facturas al renovar.
-  - Vistas con filtros por fecha y monto (JPA Criteria / Specifications).
-  - Descarga simulada de PDF.
-- **Pagos**:
-  - Simulación de pasarela de pago (éxito/fallo aleatorio).
-  - Gestión de estados de suscripción (ACTIVA, PENDIENTE_PAGO, CANCELADA).
-- **Auditoría (Admin)**:
-  - Panel de administrador protegido con clave simple.
-  - Visualización de historial de cambios en suscripciones (Envers) para ver quién cambió de plan y cuándo.
-
-### Refactorización y Calidad
-- Métodos de repositorios en español y optimizados (`buscarPorUsuarioId`, `buscarVencidas`).
-- Uso de DTOs para transferir datos a la vista (`DashboardDTO`, `FacturaFiltroDTO`).
-
-### 📸 Capturas de Pantalla
-
-| Home | Registro |
-| :---: | :---: |
-| ![Home](src/main/resources/capturas/01%20Home.png) | ![Registro](src/main/resources/capturas/02%20Registro.png) |
-
-| Dashboard | Facturas |
-| :---: | :---: |
-| ![Dashboard](src/main/resources/capturas/03%20Dashboard.png) | ![Facturas](src/main/resources/capturas/04%20Facturas.png) |
-
-| Panel Admin (Auditoría) |
-| :---: |
-| ![Admin](src/main/resources/capturas/05%20Admin.png) |
+Desde la página de inicio se puede navegar al registro, login y resto de secciones.
 
 ---
 
-## 📈 Próximas fases (Roadmap)
+## � Acceso de Administrador
 
-- Implementación de seguridad real con Spring Security (Login/Roles)
-- API REST para consumo externo
-- Pruebas unitarias con JUnit y Mockito (Cobertura > 80%)
-- Despliegue en entorno Cloud (Docker Compose + Render/AWS)
+El sistema tiene dos roles: **usuario normal** y **administrador**.
 
-## ✅ Pruebas Unitarias (JUnit)
+El administrador se crea automáticamente al arrancar la aplicación (`DataInitializer`):
 
-Se han implementado tests para asegurar la lógica crítica del negocio. Dado que es un **MVP Académico**, no hemos buscado cobertura 100%, sino probar lo importante:
+| Campo | Valor |
+|---|---|
+| Email | `admin@saas.com` |
+| Contraseña | `admin123` |
 
-### Ejecutar Tests
-Desde IntelliJ: Click derecho en folder `src/test/java` -> `Run 'All Tests'`
+Al hacer login con estas credenciales, Spring Security redirige automáticamente al **Panel de Auditoría** (`/admin/auditoria`).
 
-Desde Maven:
+> El panel de auditoría muestra el historial completo de cambios en suscripciones gracias a **Hibernate Envers** (`@Audited`).
+
+---
+
+## 📌 Funcionalidades implementadas
+
+### Semana 1 — Modelo de datos
+- **Entidades**: `Usuario`, `Perfil`, `Suscripcion`, `Plan`, `Factura`, `PagoTarjeta`, `PagoPaypal`, `PagoTransferencia`
+- **Enums**: `EstadoSuscripcion` (ACTIVA, CANCELADA, MOROSA, PENDIENTE_PAGO)
+- **Herencia de tablas**: `JOINED` para los distintos tipos de pago
+- **Auditoría con Envers**: `@Audited` en `Suscripcion` para registrar quién cambió de plan y cuándo
+- **Diagrama E-R** incluido en el repositorio (`DIAGRAMA_ER.png`)
+
+### Semana 2 — Lógica de negocio
+- **Renovación automática**: Genera factura al renovar ciclo de 30 días
+- **Pago Automático (Domiciliación)**: Scheduler nocturno que renueva y cobra automáticamente si el usuario lo activa.
+- **Cancelación automática**: Si una suscripción vence y no se paga en 3 días, el sistema la cancela (Scheduler).
+- **Cálculo de impuestos por país**: España 21%, Francia 20%, USA 10%, resto 0%
+- **Prorrateo en cambio de plan**:
+  - Upgrade (Basic → Premium): cobra la diferencia proporcional a los días restantes
+  - Downgrade: aplica en la próxima renovación, sin cargo inmediato
+- **Filtros de facturas**: por fecha de inicio, fecha fin, total mínimo y total máximo (JPA Specifications)
+- **Simulación de método de pago**: Tarjeta, PayPal, Transferencia bancaria
+- **Panel de Auditoría (Admin)**: historial de cambios con Envers
+
+### Semana 3 — Pruebas, seguridad y pulido
+- **Spring Security**: Login con roles (`ROLE_USER`, `ROLE_ADMIN`), CSRF, redirección por rol
+- **Pruebas unitarias (JUnit + Mockito)**: cobertura de los casos críticos
+- **Refactorización de vistas**: eliminación de estilos inline, CSS externo organizado
+- **UX/UI**: vistas limpias y coherentes en todas las páginas
+
+---
+
+## ✅ Pruebas Unitarias (JUnit + Mockito)
+
+### Ejecutar tests
+
 ```bash
 mvn test
 ```
 
-### Casos Cubiertos
-1. **Impuestos**: Verificación de regla 21% (ES) vs 0% (Resto).
-2. **Renovación**: Solo se cobra cuando la fecha ha vencido.
-3. **Prorrateo**:
-   - Upgrade (Basic -> Premium): Cobra diferencia prorrateada.
-   - Downgrade (Premium -> Basic): No cobra nada.
-4. **Facturación Masiva**: El proceso batch genera N facturas correctamente.
+O desde IntelliJ: click derecho en `src/test/java` → *Run 'All Tests'*
+
+### Casos cubiertos
+
+| # | Caso de prueba | Resultado esperado |
+|---|---|---|
+| 1 | Impuesto España (ES) | 21% aplicado correctamente |
+| 2 | Impuesto país no configurado | 0% (sin impuesto) |
+| 3 | Renovación cuando ha vencido | Genera factura y avanza ciclo |
+| 4 | Renovación cuando aún no toca | No genera factura, lanza aviso |
+| 5 | Prorrateo upgrade (Basic → Premium) | Cobra diferencia proporcional a días restantes |
+| 6 | Prorrateo downgrade (Premium → Basic) | No cobra nada, aplica en próxima renovación |
+| 7 | Facturación masiva (batch) | Genera N facturas para N suscripciones vencidas |
 
 ---
 
-## 📂 Control de versiones
+## 📸 Capturas de pantalla
 
-El proyecto se desarrolla con control de versiones mediante **Git**  
-y se entrega en un repositorio público de GitHub con el nombre:
+| Home | Iniciar Sesión |
+| :---: | :---: |
+| ![Home](src/main/resources/capturas/06%20HomeNueva.png) | ![Login](src/main/resources/capturas/07%20Inicio_SesionNuevo.png) |
 
-**ProyectoSpringBoot**
+| Dashboard | Mis Facturas |
+| :---: | :---: |
+| ![Dashboard](src/main/resources/capturas/08%20DashboardNuevo.png) | ![Facturas](src/main/resources/capturas/09%20FacturasNuevo.png) |
+
+| Registro | Panel Admin (Auditoría) |
+| :---: | :---: |
+| ![Registro](src/main/resources/capturas/02%20Registro.png) | ![Admin](src/main/resources/capturas/05%20Admin.png) |
 
 ---
 
-## ✍️ Notas finales
+## � Estructura del proyecto
 
-Este proyecto está planteado con un enfoque **académico y progresivo**, priorizando:
-- Claridad del modelo
-- Simplicidad defendible
-- Coherencia con los requisitos de cada fase
+```
+src/
+├── main/
+│   ├── java/.../
+│   │   ├── config/          # DataInitializer, SecurityConfig
+│   │   ├── domain/
+│   │   │   ├── entity/      # Usuario, Perfil, Suscripcion, Plan, Factura, Pago*
+│   │   │   └── enums/       # EstadoSuscripcion
+│   │   ├── repository/      # JPA Repositories
+│   │   ├── service/         # FacturaService, SuscripcionService, AuditoriaService
+│   │   └── web/controller/  # DashboardController, FacturaController, AdminController
+│   └── resources/
+│       ├── templates/       # Vistas Thymeleaf
+│       └── static/css/      # base.css, dashboard.css, auditoria.css
+└── test/                    # Tests JUnit + Mockito
+```
 
-El desarrollo continuará en las siguientes semanas conforme a la planificación establecida.
+---
+
+## 📊 Diagrama E-R
+
+![Diagrama E-R](DIAGRAMA_ER.png)
+
+---
+
+## 💡 Decisiones de diseño relevantes
+
+**Modelo de Suscripción (Prepago vs Postpago)**:
+El sistema utiliza un modelo de **prepago** (el usuario paga por adelantado el mes que va a disfrutar).
+- Si un usuario no renueva a tiempo, **no genera deuda** (no es "moroso"), simplemente pierde el acceso al servicio del mes siguiente.
+- Por ello, el estado `MOROSA` (presente en el enum original) se ha sustituido funcionalmente por la **cancelación automática** tras 3 días de gracia sin pago.
+- El estado `CANCELADA` refleja mejor la realidad del negocio: el usuario decidió no continuar (o no pagar) y el servicio se detiene.
+
+---
+
+## ✍️ Notas
+
+Proyecto académico desarrollado de forma incremental en 3 semanas.  
+Prioriza claridad del modelo, coherencia con los requisitos y código defendible.

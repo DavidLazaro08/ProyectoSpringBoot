@@ -35,61 +35,76 @@ public class DataInitializer {
                         UsuarioRepository usuarioRepository,
                         SuscripcionRepository suscripcionRepository,
                         PasswordEncoder passwordEncoder,
-                        TransactionTemplate tx) {
+                        TransactionTemplate tx,
+                        org.springframework.jdbc.core.JdbcTemplate jdbcTemplate) {
 
-                return args -> tx.execute(status -> {
-
-                        // =========================================================
-                        // PLANES (catálogo)
-                        // =========================================================
-
-                        if (planRepository.count() == 0) {
-                                planRepository.save(new Plan("BASIC", BigDecimal.valueOf(9.99)));
-                                planRepository.save(new Plan("PREMIUM", BigDecimal.valueOf(19.99)));
-                                planRepository.save(new Plan("ENTERPRISE", BigDecimal.valueOf(49.99)));
+                return args -> {
+                        // PARCHE DE MIGRACIÓN: Asegurar que la columna existe antes de cualquier
+                        // consulta
+                        try {
+                                jdbcTemplate.execute(
+                                                "ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS pago_automatico BOOLEAN NOT NULL DEFAULT FALSE");
+                                System.out.println(
+                                                ">>> MIGRACIÓN: Columna 'pago_automatico' verificada correctamente.");
+                        } catch (Exception e) {
+                                System.out.println(">>> MIGRACIÓN: Aviso (probablemente ya existe): " + e.getMessage());
                         }
 
-                        Plan basic = planRepository.findAll().stream()
-                                        .filter(p -> "BASIC".equalsIgnoreCase(p.getNombre()))
-                                        .findFirst()
-                                        .orElseThrow();
+                        tx.execute(status -> {
 
-                        Plan premium = planRepository.findAll().stream()
-                                        .filter(p -> "PREMIUM".equalsIgnoreCase(p.getNombre()))
-                                        .findFirst()
-                                        .orElseThrow();
+                                // =========================================================
+                                // PLANES (catálogo)
+                                // =========================================================
 
-                        // Hashear password usando el PasswordEncoder configurado
-                        String hashedPassword = passwordEncoder.encode(PASSWORD_DEFAULT);
+                                if (planRepository.count() == 0) {
+                                        planRepository.save(new Plan("BASIC", BigDecimal.valueOf(9.99)));
+                                        planRepository.save(new Plan("PREMIUM", BigDecimal.valueOf(19.99)));
+                                        planRepository.save(new Plan("ENTERPRISE", BigDecimal.valueOf(49.99)));
+                                }
 
-                        // =========================================================
-                        // USUARIO ADMIN (para pruebas y corrección del proyecto)
-                        // =========================================================
+                                Plan basic = planRepository.findAll().stream()
+                                                .filter(p -> "BASIC".equalsIgnoreCase(p.getNombre()))
+                                                .findFirst()
+                                                .orElseThrow();
 
-                        Usuario admin = usuarioRepository.buscarPorEmail(EMAIL_ADMIN)
-                                        .orElseGet(() -> usuarioRepository.save(
-                                                        new Usuario(EMAIL_ADMIN, "ES", hashedPassword,
-                                                                        RolUsuario.ADMIN)));
+                                Plan premium = planRepository.findAll().stream()
+                                                .filter(p -> "PREMIUM".equalsIgnoreCase(p.getNombre()))
+                                                .findFirst()
+                                                .orElseThrow();
 
-                        // =========================================================
-                        // USUARIO DEMO + SUSCRIPCIÓN (para tener algo que ver en pantalla)
-                        // =========================================================
+                                // Hashear password usando el PasswordEncoder configurado
+                                String hashedPassword = passwordEncoder.encode(PASSWORD_DEFAULT);
 
-                        Usuario usuario = usuarioRepository.buscarPorEmail(EMAIL_PRUEBA)
-                                        .orElseGet(() -> usuarioRepository.save(
-                                                        new Usuario(EMAIL_PRUEBA, "ES", hashedPassword,
-                                                                        RolUsuario.USER)));
+                                // =========================================================
+                                // USUARIO ADMIN (para pruebas y corrección del proyecto)
+                                // =========================================================
 
-                        Suscripcion suscripcion = suscripcionRepository.buscarPorUsuarioId(usuario.getId())
-                                        .orElseGet(() -> suscripcionRepository.save(new Suscripcion(usuario, basic)));
+                                Usuario admin = usuarioRepository.buscarPorEmail(EMAIL_ADMIN)
+                                                .orElseGet(() -> usuarioRepository.save(
+                                                                new Usuario(EMAIL_ADMIN, "ES", hashedPassword,
+                                                                                RolUsuario.ADMIN)));
 
-                        // Cambio de plan para generar alguna revisión en auditoría
-                        if (!"PREMIUM".equalsIgnoreCase(suscripcion.getPlan().getNombre())) {
-                                suscripcion.setPlan(premium);
-                                suscripcionRepository.save(suscripcion);
-                        }
+                                // =========================================================
+                                // USUARIO DEMO + SUSCRIPCIÓN (para tener algo que ver en pantalla)
+                                // =========================================================
 
-                        return null;
-                });
+                                Usuario usuario = usuarioRepository.buscarPorEmail(EMAIL_PRUEBA)
+                                                .orElseGet(() -> usuarioRepository.save(
+                                                                new Usuario(EMAIL_PRUEBA, "ES", hashedPassword,
+                                                                                RolUsuario.USER)));
+
+                                Suscripcion suscripcion = suscripcionRepository.buscarPorUsuarioId(usuario.getId())
+                                                .orElseGet(() -> suscripcionRepository
+                                                                .save(new Suscripcion(usuario, basic)));
+
+                                // Cambio de plan para generar alguna revisión en auditoría
+                                if (!"PREMIUM".equalsIgnoreCase(suscripcion.getPlan().getNombre())) {
+                                        suscripcion.setPlan(premium);
+                                        suscripcionRepository.save(suscripcion);
+                                }
+
+                                return null;
+                        });
+                };
         }
 }
