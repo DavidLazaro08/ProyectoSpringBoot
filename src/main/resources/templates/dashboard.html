@@ -93,6 +93,19 @@
             <!-- Tarjeta Método de Pago -->
             <div class="tarjeta">
                 <h3>💳 Método de Pago</h3>
+
+                <form th:action="@{/dashboard/pago-automatico}" method="post" class="form-pago-auto">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                    <div class="switch-container">
+                        <span class="switch-label">Pago Automático (Domiciliación)</span>
+                        <label class="switch">
+                            <input type="checkbox" name="activo" th:checked="${pagoAutomatico}"
+                                onchange="this.form.submit()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </form>
+
                 <p class="subtitulo-pago">Selecciona tu método de pago preferido</p>
 
                 <form th:action="@{/dashboard/pago}" method="post" id="pagoForm">

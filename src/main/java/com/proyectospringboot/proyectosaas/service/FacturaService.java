@@ -465,4 +465,62 @@ public class FacturaService {
 
     public record RenovacionResultado(boolean exito, String mensaje) {
     }
+
+    // =========================================================
+    // RENOVACIÓN + PAGO AUTOMÁTICO (para el scheduler)
+    // =========================================================
+
+    @Transactional
+    public void renovarYPagarAuto(Suscripcion suscripcion) {
+        String email = suscripcion.getUsuario().getEmail();
+
+        BigDecimal base = suscripcion.getPlan().getPrecioMensual();
+        BigDecimal impuesto = calcularImpuesto(suscripcion, base);
+        BigDecimal total = base.add(impuesto);
+
+        Factura factura = new Factura(suscripcion, LocalDateTime.now(), base, impuesto, total, CONCEPTO_RENOVACION);
+        facturaRepository.save(factura);
+
+        suscripcion.setFechaFinCiclo(suscripcion.getFechaFinCiclo().plusDays(30));
+        suscripcionRepository.save(suscripcion);
+
+        // Pago automático con el método preferido guardado
+        String metodo = suscripcion.getUsuario().getMetodoPagoPreferido();
+        if (metodo == null)
+            metodo = "tarjeta";
+
+        com.proyectospringboot.proyectosaas.domain.entity.Pago pago = switch (metodo.toLowerCase()) {
+            case "paypal" -> new com.proyectospringboot.proyectosaas.domain.entity.PagoPaypal(
+                    factura, total, LocalDateTime.now(), email);
+            case "transferencia" -> new com.proyectospringboot.proyectosaas.domain.entity.PagoTransferencia(
+                    factura, total, LocalDateTime.now(), "ES00AUTO", "REF-AUTO-" + System.currentTimeMillis());
+            default -> new com.proyectospringboot.proyectosaas.domain.entity.PagoTarjeta(
+                    factura, total, LocalDateTime.now(), "AUTO", "Pago Automático");
+        };
+
+        entityManager.persist(pago);
+    }
+
+    // Cancela suscripciones que llevan más de 3 días vencidas sin pagar
+    @Transactional
+    public int cancelarExpiradas() {
+        LocalDateTime limite = LocalDateTime.now().minusDays(3); // 3 días de margen
+
+        List<Suscripcion> candidatas = suscripcionRepository
+                .buscarVencidas(EstadoSuscripcion.ACTIVA, limite);
+
+        int canceladas = 0;
+
+        for (Suscripcion s : candidatas) {
+            // Solo cancelamos si tiene factura pendiente de pago (no ha pagado)
+            boolean tienePendiente = tieneFacturaPendiente(s.getUsuario().getEmail());
+            if (tienePendiente) {
+                s.cancelar();
+                suscripcionRepository.save(s);
+                canceladas++;
+            }
+        }
+
+        return canceladas;
+    }
 }
