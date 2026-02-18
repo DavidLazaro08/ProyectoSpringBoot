@@ -7,7 +7,7 @@ Implementación del **core de una plataforma SaaS**: registro de usuarios, suscr
 
 ---
 
-## 🚀 Cómo ejecutar el proyecto
+## Cómo ejecutar el proyecto
 
 ### 1. Levantar la base de datos (PostgreSQL con Docker)
 
@@ -52,14 +52,14 @@ Al hacer login con estas credenciales, Spring Security redirige automáticamente
 
 ---
 
-## 📌 Funcionalidades implementadas
+## Funcionalidades implementadas
 
 ### Semana 1 — Modelo de datos
 - **Entidades**: `Usuario`, `Perfil`, `Suscripcion`, `Plan`, `Factura`, `PagoTarjeta`, `PagoPaypal`, `PagoTransferencia`
 - **Enums**: `EstadoSuscripcion` (ACTIVA, CANCELADA, MOROSA, PENDIENTE_PAGO)
 - **Herencia de tablas**: `JOINED` para los distintos tipos de pago
 - **Auditoría con Envers**: `@Audited` en `Suscripcion` para registrar quién cambió de plan y cuándo
-- **Diagrama E-R** incluido en el repositorio (`DIAGRAMA_ER.png`)
+- **Diagrama E-R** incluido en el repositorio (`docs/DIAGRAMA_ER.png`)
 
 ### Semana 2 — Lógica de negocio
 - **Renovación automática**: Genera factura al renovar ciclo de 30 días
@@ -81,7 +81,7 @@ Al hacer login con estas credenciales, Spring Security redirige automáticamente
 
 ---
 
-## ✅ Pruebas Unitarias (JUnit + Mockito)
+## Pruebas Unitarias (JUnit + Mockito)
 
 ### Ejecutar tests
 
@@ -105,7 +105,7 @@ O desde IntelliJ: click derecho en `src/test/java` → *Run 'All Tests'*
 
 ---
 
-## 📸 Capturas de pantalla
+## Capturas de pantalla
 
 | Home | Iniciar Sesión |
 | :---: | :---: |
@@ -144,7 +144,7 @@ src/
 
 ## 📊 Diagrama E-R
 
-![Diagrama E-R](DIAGRAMA_ER.png)
+![Diagrama E-R](docs/DIAGRAMA_ER.png)
 
 ---
 
@@ -158,7 +158,7 @@ El sistema utiliza un modelo de **prepago** (el usuario paga por adelantado el m
 
 ---
 
-## ✍️ Notas
+## Notas
 
 Proyecto académico desarrollado de forma incremental en 3 semanas.  
 Prioriza claridad del modelo, coherencia con los requisitos y código defendible.
