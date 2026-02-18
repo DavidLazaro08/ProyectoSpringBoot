@@ -1,0 +1,510 @@
+/* base.css — Estilos compartidos entre todas las vistas */
+
+/* =========================================================
+   VARIABLES
+   ========================================================= */
+:root {
+    --color-primario: #007bff;
+    --color-primario-hover: #0056b3;
+    --color-secundario: #6c757d;
+    --color-secundario-hover: #5a6268;
+    --color-fondo: #f4f4f9;
+    --color-blanco: #ffffff;
+    --color-texto: #333;
+    --color-texto-suave: #666;
+    --radio-borde: 8px;
+    --sombra: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* =========================================================
+   RESET BÁSICO
+   ========================================================= */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--color-fondo);
+    color: var(--color-texto);
+    margin: 0;
+    padding: 20px;
+}
+
+/* =========================================================
+   CONTENEDORES
+   ========================================================= */
+.contenedor {
+    background: var(--color-blanco);
+    padding: 30px;
+    border-radius: var(--radio-borde);
+    box-shadow: var(--sombra);
+    max-width: 800px;
+    width: 100%;
+    margin: 20px auto;
+}
+
+.contenedor-sm {
+    max-width: 500px;
+}
+
+.contenedor-lg {
+    max-width: 1200px;
+}
+
+/* =========================================================
+   TIPOGRAFÍA
+   ========================================================= */
+h1,
+h2,
+h3 {
+    color: #444;
+    margin-bottom: 20px;
+}
+
+/* =========================================================
+   BOTONES
+   ========================================================= */
+.boton {
+    display: inline-block;
+    padding: 10px 20px;
+    background: var(--color-primario);
+    color: white;
+    text-decoration: none;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    text-align: center;
+    transition: background 0.2s;
+}
+
+.boton:hover {
+    background: var(--color-primario-hover);
+}
+
+.boton-secundario {
+    background: var(--color-secundario);
+}
+
+.boton-secundario:hover {
+    background: var(--color-secundario-hover);
+}
+
+.boton-peligro {
+    background: #dc3545;
+}
+
+.boton-peligro:hover {
+    background: #c82333;
+}
+
+.boton-warning {
+    background: #ffc107;
+    color: #333;
+}
+
+.boton-warning:hover {
+    background: #e0a800;
+}
+
+.boton-bloque {
+    display: block;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.boton-ancho-completo {
+    width: 100%;
+}
+
+/* =========================================================
+   ESTADOS DE SUSCRIPCIÓN
+   ========================================================= */
+.estado-activo {
+    color: green;
+    font-weight: bold;
+}
+
+.estado-inactivo {
+    color: red;
+    font-weight: bold;
+}
+
+/* =========================================================
+   FORMULARIOS
+   ========================================================= */
+.grupo-campo {
+    margin-bottom: 15px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+input,
+select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+/* =========================================================
+   TABLAS
+   ========================================================= */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th,
+td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
+    background-color: var(--color-primario);
+    color: white;
+}
+
+tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* =========================================================
+   MENSAJES FLASH
+   ========================================================= */
+.mensaje {
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.mensaje.exito {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.mensaje.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.mensaje.warning {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffc107;
+}
+
+/* =========================================================
+   ENLACES
+   ========================================================= */
+.enlace-primario {
+    color: var(--color-primario);
+    text-decoration: none;
+}
+
+.enlace-primario:hover {
+    text-decoration: underline;
+}
+
+.enlace-suave {
+    color: var(--color-secundario);
+    text-decoration: none;
+}
+
+.enlace-suave:hover {
+    text-decoration: underline;
+}
+
+.enlace-volver {
+    color: var(--color-primario);
+    text-decoration: none;
+    font-weight: 500;
+    display: inline-block;
+    margin-bottom: 20px;
+}
+
+.enlace-volver:hover {
+    text-decoration: underline;
+}
+
+/* =========================================================
+   UTILIDADES
+   ========================================================= */
+.centrado {
+    text-align: center;
+}
+
+.mt-10 {
+    margin-top: 10px;
+}
+
+.mt-15 {
+    margin-top: 15px;
+}
+
+.mt-20 {
+    margin-top: 20px;
+}
+
+.mt-30 {
+    margin-top: 30px;
+}
+
+.mt-40 {
+    margin-top: 40px;
+}
+
+.mb-10 {
+    margin-bottom: 10px;
+}
+
+.mb-20 {
+    margin-bottom: 20px;
+}
+
+.sin-margen {
+    margin: 0;
+}
+
+/* =========================================================
+   PÁGINA DE ERROR
+   ========================================================= */
+.contenedor-error {
+    border: 1px solid #f5c6cb;
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.titulo-error {
+    color: #721c24;
+}
+
+/* =========================================================
+   PÁGINA HOME
+   ========================================================= */
+.contenedor-home {
+    max-width: 600px;
+    margin: 50px auto;
+    text-align: center;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.acciones-home {
+    margin-top: 30px;
+}
+
+.acciones-admin {
+    margin-top: 30px;
+}
+
+/* =========================================================
+   CABECERA USUARIO (compartida dashboard + auditoría)
+   ========================================================= */
+.cabecera-dashboard {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 0;
+    border-bottom: 1px solid #e0e0e0;
+    margin-bottom: 30px;
+}
+
+.info-usuario {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.avatar-usuario {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.avatar-admin {
+    background: linear-gradient(135deg, #dc3545, #a71d2a);
+}
+
+.nombre-usuario {
+    font-weight: 600;
+    color: #333;
+}
+
+.email-usuario {
+    font-size: 14px;
+    color: #666;
+}
+
+.boton-cerrar-sesion {
+    padding: 8px 16px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.boton-cerrar-sesion:hover {
+    background: #f5f5f5;
+    border-color: #999;
+}
+
+.barra-titulo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+/* =========================================================
+   BADGE ADMIN
+   ========================================================= */
+.badge-admin {
+    background: #dc3545;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-left: 8px;
+}
+
+/* =========================================================
+   FORMULARIO LOGOUT (sin margen)
+   ========================================================= */
+.form-logout {
+    margin: 0;
+}
+
+/* =========================================================
+   FILTROS (compartido facturas admin y usuario)
+   ========================================================= */
+.tarjeta-filtros {
+    background: white;
+    padding: 24px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 24px;
+}
+
+.titulo-filtros {
+    margin-top: 0;
+}
+
+.grid-filtros {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.grupo-filtro label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #333;
+    font-size: 14px;
+}
+
+.grupo-filtro input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.boton-filtrar {
+    background: var(--color-primario);
+    color: white;
+    padding: 10px 24px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.boton-filtrar:hover {
+    background: var(--color-primario-hover);
+}
+
+/* =========================================================
+   TABLA DE FACTURAS (compartida)
+   ========================================================= */
+.tarjeta-tabla {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.tarjeta-tabla table {
+    margin-top: 0;
+}
+
+.tarjeta-tabla thead {
+    background: var(--color-primario);
+    color: white;
+}
+
+.tarjeta-tabla th {
+    padding: 16px;
+    font-size: 14px;
+}
+
+.tarjeta-tabla td {
+    padding: 16px;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 14px;
+}
+
+.tarjeta-tabla tbody tr:hover {
+    background: #f8f9fa;
+}
+
+.celda-concepto {
+    max-width: 300px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sin-facturas {
+    padding: 40px;
+    text-align: center;
+    color: #666;
+}
+
+/* =========================================================
+   CABECERA FACTURAS USUARIO
+   ========================================================= */
+.cabecera-seccion {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}

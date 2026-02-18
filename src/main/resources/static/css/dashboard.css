@@ -1,0 +1,341 @@
+/* dashboard.css — Estilos específicos del dashboard de usuario */
+
+/* =========================================================
+   GRID PRINCIPAL
+   ========================================================= */
+.grid-dashboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+/* =========================================================
+   TARJETAS
+   ========================================================= */
+.tarjeta {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    border: 1px solid #eee;
+}
+
+.tarjeta h3 {
+    margin-top: 0;
+    color: #333;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 10px;
+    display: inline-block;
+}
+
+/* =========================================================
+   ESTADÍSTICAS
+   ========================================================= */
+.etiqueta-stat {
+    font-size: 0.9em;
+    color: #666;
+}
+
+.valor-stat {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #000;
+    margin-bottom: 10px;
+}
+
+.valor-stat-plan {
+    color: #007bff;
+}
+
+/* =========================================================
+   BOTÓN OUTLINE
+   ========================================================= */
+.boton-outline {
+    background: transparent;
+    border: 1px solid #007bff;
+    color: #007bff;
+    padding: 8px 15px;
+    text-decoration: none;
+    border-radius: 4px;
+    display: block;
+    width: 100%;
+    text-align: center;
+    margin-bottom: 10px;
+    box-sizing: border-box;
+    margin-top: 10px;
+}
+
+.boton-outline:hover {
+    background: #f0f8ff;
+}
+
+/* =========================================================
+   BADGES DE ESTADO FACTURA
+   ========================================================= */
+.badge-pagada {
+    background: #d4edda;
+    color: #155724;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    font-weight: bold;
+}
+
+.badge-pendiente {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    font-weight: bold;
+}
+
+.contenedor-badge {
+    margin-bottom: 10px;
+}
+
+/* =========================================================
+   FORMULARIO RENOVAR
+   ========================================================= */
+.form-renovar {
+    margin-top: 15px;
+}
+
+/* =========================================================
+   MÉTODO DE PAGO
+   ========================================================= */
+.subtitulo-pago {
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.opcion-pago {
+    margin: 10px 0;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.opcion-pago:hover {
+    background: #f9f9f9;
+}
+
+.opcion-pago label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    font-weight: bold;
+    width: 100%;
+    margin-bottom: 0;
+}
+
+.opcion-pago-contenido {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.icono-pago {
+    font-size: 20px;
+}
+
+.nombre-metodo {
+    font-weight: 500;
+}
+
+.check-metodo {
+    color: #007bff;
+    font-size: 16px;
+    margin-left: 4px;
+}
+
+/* =========================================================
+   CAMPOS DE PAGO (ocultos por defecto, JS los muestra)
+   ========================================================= */
+.campos-pago {
+    display: none;
+    margin-left: 30px;
+    margin-top: 10px;
+    padding: 10px;
+    background: #f9f9f9;
+    border-radius: 4px;
+}
+
+.campo-label {
+    display: block;
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 4px;
+}
+
+.campo-input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.campo-input-corto {
+    width: 100px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.grupo-campo-pago {
+    margin-bottom: 10px;
+}
+
+/* =========================================================
+   BOTÓN REGISTRAR PAGO
+   ========================================================= */
+.boton-registrar-pago {
+    background: #17a2b8;
+    color: white;
+    width: 100%;
+    margin-top: 20px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.2s;
+}
+
+.boton-registrar-pago:hover {
+    background: #138496;
+}
+
+.aviso-demo {
+    display: block;
+    margin-top: 10px;
+    color: #888;
+    text-align: center;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+    font-size: 0.85em;
+}
+
+/* =========================================================
+   SECCIÓN CAMBIAR PLAN
+   ========================================================= */
+.seccion-planes {
+    margin-top: 40px;
+    padding: 20px 0;
+}
+
+.titulo-planes {
+    text-align: center;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.subtitulo-planes {
+    text-align: center;
+    color: #666;
+    margin-bottom: 30px;
+    font-size: 14px;
+}
+
+.grid-planes {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: nowrap;
+}
+
+/* =========================================================
+   TARJETA DE PLAN
+   ========================================================= */
+.tarjeta-plan {
+    flex: 1;
+    max-width: 320px;
+    min-width: 250px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 24px;
+    background: white;
+    text-align: center;
+    transition: all 0.3s ease;
+    position: relative;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.tarjeta-plan:hover {
+    transform: translateY(-10px) scale(1.03);
+    box-shadow: 0 12px 24px rgba(0, 123, 255, 0.25);
+    border-color: #007bff;
+}
+
+.tarjeta-plan.plan-actual {
+    border-color: #007bff;
+    box-shadow: 0 4px 16px rgba(0, 123, 255, 0.2);
+}
+
+.tarjeta-plan.plan-actual:hover {
+    transform: translateY(-10px) scale(1.03);
+    box-shadow: 0 12px 24px rgba(0, 123, 255, 0.35);
+}
+
+.badge-plan-actual {
+    background: #007bff;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    margin-bottom: 10px;
+    display: inline-block;
+}
+
+.nombre-plan {
+    font-size: 24px;
+    margin: 10px 0;
+    color: #333;
+}
+
+.precio-plan-wrap {
+    margin: 20px 0;
+}
+
+.precio-plan {
+    font-size: 32px;
+    font-weight: bold;
+    color: #007bff;
+}
+
+.unidad-precio {
+    font-size: 18px;
+    color: #666;
+}
+
+/* =========================================================
+   BOTÓN CAMBIAR PLAN
+   ========================================================= */
+.boton-cambiar-plan {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+    background: #007bff;
+    color: white;
+    transition: background 0.2s;
+}
+
+.boton-cambiar-plan:hover:not(:disabled) {
+    background: #0056b3;
+}
+
+.boton-cambiar-plan:disabled,
+.boton-cambiar-plan.plan-activo {
+    background: #6c757d;
+    color: white;
+    cursor: default;
+}

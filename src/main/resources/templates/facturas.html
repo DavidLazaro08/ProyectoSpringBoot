@@ -4,189 +4,15 @@
 <head>
     <meta charset="UTF-8">
     <title>Gestión de Facturas - Admin</title>
-    <link rel="stylesheet" th:href="@{/css/styles.css}">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
-            margin: 0;
-            padding: 20px;
-        }
-
-        .facturas-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        h1 {
-            color: #333;
-            margin-bottom: 20px;
-        }
-
-        .back-link {
-            color: #007bff;
-            text-decoration: none;
-            font-weight: 500;
-            display: inline-block;
-            margin-bottom: 20px;
-        }
-
-        .back-link:hover {
-            text-decoration: underline;
-        }
-
-        .search-card {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-        }
-
-        .search-card input[type="email"] {
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            width: 300px;
-            font-size: 14px;
-        }
-
-        .search-card button {
-            padding: 10px 24px;
-            background: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 600;
-            margin-left: 10px;
-        }
-
-        .search-card button:hover {
-            background: #0056b3;
-        }
-
-        .filters-card {
-            background: white;
-            padding: 24px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            margin-bottom: 24px;
-        }
-
-        .filters-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 16px;
-            margin-bottom: 16px;
-        }
-
-        .filter-group label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 6px;
-            color: #333;
-            font-size: 14px;
-        }
-
-        .filter-group input {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-
-        .table-card {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        thead {
-            background: #007bff;
-            color: white;
-        }
-
-        th {
-            padding: 16px;
-            text-align: left;
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        td {
-            padding: 16px;
-            border-bottom: 1px solid #f0f0f0;
-            font-size: 14px;
-        }
-
-        tbody tr:hover {
-            background: #f8f9fa;
-        }
-
-        .no-facturas {
-            padding: 40px;
-            text-align: center;
-            color: #666;
-        }
-
-        .concepto-cell {
-            max-width: 300px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .btn-filter {
-            background: #007bff;
-            color: white;
-            padding: 10px 24px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: background 0.2s;
-        }
-
-        .btn-filter:hover {
-            background: #0056b3;
-        }
-
-        .mensaje {
-            padding: 12px;
-            border-radius: 4px;
-            margin-bottom: 20px;
-        }
-
-        .mensaje.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        .mensaje.exito {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/base.css}">
+    <link rel="stylesheet" th:href="@{/css/auditoria.css}">
 </head>
 
 <body>
-    <div class="facturas-container">
+    <div class="contenedor-facturas">
         <h1>Gestión de Facturas</h1>
 
-        <a th:href="@{/admin/auditoria}" class="back-link">← Volver al Panel de Auditoría</a>
+        <a th:href="@{/admin/auditoria}" class="enlace-volver">← Volver al Panel de Auditoría</a>
 
         <!-- Mensajes Flash -->
         <div th:if="${mensaje}" th:class="'mensaje ' + ${tipoMensaje != null ? tipoMensaje : 'error'}"
@@ -194,7 +20,7 @@
         </div>
 
         <!-- Buscador por Email -->
-        <div class="search-card">
+        <div class="tarjeta-busqueda">
             <form method="get" action="/facturas">
                 <input type="email" name="email" placeholder="Ingrese email del usuario" th:value="${email}" required>
                 <button type="submit">Buscar</button>
@@ -202,42 +28,42 @@
         </div>
 
         <!-- Filtros opcionales -->
-        <div class="filters-card" th:if="${email != null and !email.isBlank()}">
-            <h3 style="margin-top: 0;">Filtros opcionales</h3>
+        <div class="tarjeta-filtros" th:if="${email != null and !email.isBlank()}">
+            <h3 class="titulo-filtros">Filtros opcionales</h3>
             <form method="get" action="/facturas">
                 <input type="hidden" name="email" th:value="${email}">
 
-                <div class="filters-grid">
-                    <div class="filter-group">
+                <div class="grid-filtros">
+                    <div class="grupo-filtro">
                         <label for="fechaInicio">Fecha inicio:</label>
                         <input type="datetime-local" id="fechaInicio" name="fechaInicio" th:value="${fechaInicio}">
                     </div>
 
-                    <div class="filter-group">
+                    <div class="grupo-filtro">
                         <label for="fechaFin">Fecha fin:</label>
                         <input type="datetime-local" id="fechaFin" name="fechaFin" th:value="${fechaFin}">
                     </div>
 
-                    <div class="filter-group">
+                    <div class="grupo-filtro">
                         <label for="totalMin">Total mínimo (€):</label>
                         <input type="number" step="0.01" id="totalMin" name="totalMin" placeholder="Ej: 10.00"
                             th:value="${totalMin}">
                     </div>
 
-                    <div class="filter-group">
+                    <div class="grupo-filtro">
                         <label for="totalMax">Total máximo (€):</label>
                         <input type="number" step="0.01" id="totalMax" name="totalMax" placeholder="Ej: 100.00"
                             th:value="${totalMax}">
                     </div>
                 </div>
 
-                <button type="submit" class="btn-filter">Filtrar</button>
+                <button type="submit" class="boton-filtrar">Filtrar</button>
             </form>
         </div>
 
         <!-- Tabla de Facturas -->
         <div th:if="${facturas != null}">
-            <div th:if="${facturas.isEmpty()}" class="no-facturas">
+            <div th:if="${facturas.isEmpty()}" class="sin-facturas">
                 <p th:if="${fechaInicio != null or fechaFin != null or totalMin != null or totalMax != null}">
                     No hay facturas que cumplan los filtros aplicados.
                 </p>
@@ -246,7 +72,7 @@
                 </p>
             </div>
 
-            <div th:if="${!facturas.isEmpty()}" class="table-card">
+            <div th:if="${!facturas.isEmpty()}" class="tarjeta-tabla">
                 <table>
                     <thead>
                         <tr>
@@ -265,7 +91,7 @@
                             <td th:text="${#numbers.formatDecimal(f.importe, 1, 2)} + ' €'">9.67 €</td>
                             <td th:text="${#numbers.formatDecimal(f.impuesto, 1, 2)} + ' €'">2.03 €</td>
                             <td><strong th:text="${#numbers.formatDecimal(f.total, 1, 2)} + ' €'">11.70 €</strong></td>
-                            <td class="concepto-cell"
+                            <td class="celda-concepto"
                                 th:text="${f.concepto != null ? f.concepto : 'Suscripción mensual'}"
                                 th:title="${f.concepto}">
                                 Concepto
