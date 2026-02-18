@@ -5,6 +5,7 @@ import com.proyectospringboot.proyectosaas.domain.entity.Plan;
 import com.proyectospringboot.proyectosaas.domain.entity.Suscripcion;
 import com.proyectospringboot.proyectosaas.domain.entity.Usuario;
 import com.proyectospringboot.proyectosaas.domain.enums.EstadoSuscripcion;
+import com.proyectospringboot.proyectosaas.domain.enums.RolUsuario;
 import com.proyectospringboot.proyectosaas.repository.FacturaRepository;
 import com.proyectospringboot.proyectosaas.repository.SuscripcionRepository;
 import com.proyectospringboot.proyectosaas.service.FacturaService.RenovacionResultado;
@@ -58,7 +59,7 @@ class FacturaServiceTest {
 
     @BeforeEach
     void setUp() {
-        usuario = new Usuario("test@test.com", "ES");
+        usuario = new Usuario("test@test.com", "ES", "hashedPassword", RolUsuario.USER);
         plan = new Plan("BASIC", new BigDecimal("10.00"));
         suscripcion = new Suscripcion(usuario, plan);
         suscripcion.setEstado(EstadoSuscripcion.ACTIVA);
@@ -135,10 +136,10 @@ class FacturaServiceTest {
     @Test
     void generarFacturasPendientes_creaFacturaPorCadaSuscripcionVencida() {
 
-        Suscripcion s1 = new Suscripcion(new Usuario("u1@test.com", "ES"), plan);
+        Suscripcion s1 = new Suscripcion(new Usuario("u1@test.com", "ES", "hashedPassword", RolUsuario.USER), plan);
         s1.setFechaFinCiclo(LocalDateTime.now().minusDays(1));
 
-        Suscripcion s2 = new Suscripcion(new Usuario("u2@test.com", "FR"), plan);
+        Suscripcion s2 = new Suscripcion(new Usuario("u2@test.com", "FR", "hashedPassword", RolUsuario.USER), plan);
         s2.setFechaFinCiclo(LocalDateTime.now().minusDays(2));
 
         when(suscripcionRepository.buscarVencidas(eq(EstadoSuscripcion.ACTIVA), any(LocalDateTime.class)))

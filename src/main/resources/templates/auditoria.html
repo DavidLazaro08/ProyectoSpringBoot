@@ -3,60 +3,237 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Panel de Auditoría</title>
+    <title>Panel de Auditoría - Proyecto SaaS</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Header profesional */
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 30px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #dc3545, #a71d2a);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .admin-badge {
+            background: #dc3545;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .btn-logout {
+            padding: 8px 16px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-logout:hover {
+            background: #f5f5f5;
+            border-color: #999;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .back-link {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Sección de navegación */
+        .admin-nav {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 30px;
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+
+        .admin-nav a {
+            padding: 10px 20px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .admin-nav a:hover {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+
+        h2 {
+            color: #444;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        .table-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #007bff;
+            color: white;
+        }
+
+        th {
+            padding: 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        td {
+            padding: 16px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+        }
+
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .no-data {
+            padding: 40px;
+            text-align: center;
+            color: #666;
+        }
+    </style>
 </head>
 
 <body>
-
     <div class="container">
-        <h1>Panel de Auditoría (Admin)</h1>
-
-        <div class="text-center" style="margin-bottom: 20px;">
-            <a href="/" style="color: #6c757d; text-decoration: none;">← Volver al inicio</a>
+        <!-- Header con usuario autenticado -->
+        <div class="dashboard-header">
+            <div class="user-info">
+                <div class="user-avatar">A</div>
+                <div>
+                    <div style="font-weight: 600; color: #333;">
+                        Administrador
+                        <span class="admin-badge">ADMIN</span>
+                    </div>
+                    <div style="font-size: 14px; color: #666;">Panel de Auditoría</div>
+                </div>
+            </div>
+            <form method="post" action="/logout" style="margin: 0;">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <button type="submit" class="btn-logout">Cerrar Sesión</button>
+            </form>
         </div>
 
-        <!-- Mensaje de error controlado -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h1>Panel de Auditoría</h1>
+            <a th:href="@{/}" class="back-link">← Volver al inicio</a>
+        </div>
+
+        <!-- Navegación Admin -->
+        <div class="admin-nav">
+            <a th:href="@{/facturas}">📊 Gestión de Facturas</a>
+            <a th:href="@{/admin/auditoria}">📋 Historial de Cambios</a>
+        </div>
+
+        <!-- Mensajes Flash -->
         <div th:if="${error}" class="mensaje error" th:text="${error}"
             style="background: #f8d7da; color: #721c24; padding: 10px; margin-bottom: 20px; border: 1px solid #f5c6cb; border-radius: 4px;">
         </div>
 
-        <!-- Mensaje de migración si hubo -->
         <div th:if="${mensaje}" class="mensaje exito" th:text="${mensaje}"></div>
-
-        <!-- Nota sobre seguridad -->
-        <div class="mensaje" style="background: #fff3cd; color: #856404; border: 1px solid #ffeaa7;">
-            <strong>Nota:</strong> Este panel es solo para demostración. En producción debería estar protegido con
-            autenticación y roles de administrador.
-        </div>
 
         <h2>Historial de Cambios (Envers)</h2>
 
-        <div th:if="${revisiones == null or revisiones.isEmpty()}" class="no-facturas">
+        <div th:if="${revisiones == null or revisiones.isEmpty()}" class="no-data">
             <p>No hay revisiones registradas aún.</p>
         </div>
 
-        <table th:if="${revisiones != null and !revisiones.isEmpty()}">
-            <thead>
-                <tr>
-                    <th>Fecha Revisión</th>
-                    <th>Entidad</th>
-                    <th>ID</th>
-                    <th>Email Usuario</th>
-                    <th>Resumen Cambio</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr th:each="rev : ${revisiones}">
-                    <td th:text="${#temporals.format(rev.fechaRevision, 'dd/MM/yyyy HH:mm:ss')}"></td>
-                    <td th:text="${rev.entidad}"></td>
-                    <td th:text="${rev.idEntidad}"></td>
-                    <td th:text="${rev.emailUsuario}"></td>
-                    <td th:text="${rev.resumenCambio}"></td>
-                </tr>
-            </tbody>
-        </table>
-
+        <div th:if="${revisiones != null and !revisiones.isEmpty()}" class="table-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha Revisión</th>
+                        <th>Entidad</th>
+                        <th>ID</th>
+                        <th>Email Usuario</th>
+                        <th>Resumen Cambio</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="rev : ${revisiones}">
+                        <td th:text="${#temporals.format(rev.fechaRevision, 'dd/MM/yyyy HH:mm:ss')}"></td>
+                        <td th:text="${rev.entidad}"></td>
+                        <td th:text="${rev.idEntidad}"></td>
+                        <td th:text="${rev.emailUsuario}"></td>
+                        <td th:text="${rev.resumenCambio}"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </body>
 
 </html>

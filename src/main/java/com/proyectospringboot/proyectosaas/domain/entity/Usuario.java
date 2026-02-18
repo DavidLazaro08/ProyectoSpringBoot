@@ -1,5 +1,6 @@
 package com.proyectospringboot.proyectosaas.domain.entity;
 
+import com.proyectospringboot.proyectosaas.domain.enums.RolUsuario;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -25,6 +26,16 @@ public class Usuario {
     @Column(nullable = false)
     private String pais;
 
+    @Column(nullable = false)
+    private String password;
+
+    @Column(name = "metodo_pago_preferido", length = 50)
+    private String metodoPagoPreferido; // "Tarjeta", "PayPal", "Transferencia"
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private RolUsuario rol;
+
     @Column(name = "fecha_alta", nullable = false)
     private LocalDateTime fechaAlta;
 
@@ -39,9 +50,11 @@ public class Usuario {
         // Constructor requerido por JPA
     }
 
-    public Usuario(String email, String pais) {
+    public Usuario(String email, String pais, String password, RolUsuario rol) {
         this.email = email;
         this.pais = pais;
+        this.password = password;
+        this.rol = rol;
         this.fechaAlta = LocalDateTime.now();
     }
 
@@ -67,5 +80,25 @@ public class Usuario {
 
     public Perfil getPerfil() {
         return perfil;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public RolUsuario getRol() {
+        return rol;
+    }
+
+    public String getMetodoPagoPreferido() {
+        return metodoPagoPreferido;
+    }
+
+    // =========================================================
+    // SETTERS
+    // =========================================================
+
+    public void setMetodoPagoPreferido(String metodoPagoPreferido) {
+        this.metodoPagoPreferido = metodoPagoPreferido;
     }
 }

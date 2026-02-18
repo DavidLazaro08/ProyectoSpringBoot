@@ -1,9 +1,15 @@
 package com.proyectospringboot.proyectosaas.web.controller;
 
 import com.proyectospringboot.proyectosaas.domain.entity.Factura;
+import com.proyectospringboot.proyectosaas.domain.entity.Plan;
 import com.proyectospringboot.proyectosaas.domain.entity.Suscripcion;
 import com.proyectospringboot.proyectosaas.service.FacturaService;
+import com.proyectospringboot.proyectosaas.service.SuscripcionService;
+import com.proyectospringboot.proyectosaas.repository.PlanRepository;
 import com.proyectospringboot.proyectosaas.repository.SuscripcionRepository;
+import com.proyectospringboot.proyectosaas.repository.UsuarioRepository;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -17,17 +23,27 @@ public class DashboardController {
 
     private final SuscripcionRepository suscripcionRepository;
     private final FacturaService facturaService;
+    private final PlanRepository planRepository;
+    private final SuscripcionService suscripcionService;
+    private final UsuarioRepository usuarioRepository;
 
-    public DashboardController(SuscripcionRepository suscripcionRepository, FacturaService facturaService) {
+    public DashboardController(SuscripcionRepository suscripcionRepository,
+            FacturaService facturaService,
+            PlanRepository planRepository,
+            SuscripcionService suscripcionService,
+            UsuarioRepository usuarioRepository) {
         this.suscripcionRepository = suscripcionRepository;
         this.facturaService = facturaService;
+        this.planRepository = planRepository;
+        this.suscripcionService = suscripcionService;
+        this.usuarioRepository = usuarioRepository;
     }
 
     @GetMapping
-    public String dashboard(@RequestParam(required = false) String email, Model model) {
-        if (email == null || email.isBlank()) {
-            return "redirect:/";
-        }
+    public String dashboard(@AuthenticationPrincipal UserDetails userDetails, Model model) {
+
+        // Obtener email del usuario autenticado
+        String email = userDetails.getUsername();
 
         // Buscar suscripción (y usuario)
         var suscripcionOpt = suscripcionRepository.buscarPorEmail(email);
@@ -54,33 +70,79 @@ public class DashboardController {
         String metodoPago = facturaService.obtenerUltimoMetodoPago(email);
         model.addAttribute("metodoPago", metodoPago);
 
+        // Método de pago preferido del usuario (guardado en BD)
+        String metodoPagoPreferido = suscripcion.getUsuario().getMetodoPagoPreferido();
+        model.addAttribute("metodoPagoPreferido", metodoPagoPreferido != null ? metodoPagoPreferido : "Tarjeta");
+
+        // Cargar todos los planes disponibles para cambio de plan
+        List<Plan> planes = planRepository.findAll();
+        model.addAttribute("planes", planes);
+
         return "dashboard";
     }
 
-    @PostMapping("/acceder")
-    public String acceder(@RequestParam String email, RedirectAttributes redirectAttributes) {
-        // Redirige al dashboard validando email
-        var suscripcionOpt = suscripcionRepository.buscarPorEmail(email);
-        if (suscripcionOpt.isEmpty()) {
-            redirectAttributes.addFlashAttribute("error", "El email introductido no existe en nuestra base de datos.");
-            return "redirect:/";
-        }
-        return "redirect:/dashboard?email=" + email;
-    }
-
     @PostMapping("/pago")
-    public String guardarPagoDemo(@RequestParam String email,
+    public String guardarPagoDemo(@AuthenticationPrincipal UserDetails userDetails,
             @RequestParam String tipoPago,
+            // Campos tarjeta
+            @RequestParam(required = false) String ultimos4,
+            @RequestParam(required = false) String titular,
+            // Campo PayPal
+            @RequestParam(required = false) String emailPaypal,
+            // Campos transferencia
+            @RequestParam(required = false) String iban,
+            @RequestParam(required = false) String referencia,
             RedirectAttributes redirectAttributes) {
+
+        String email = userDetails.getUsername();
+
         try {
-            facturaService.registrarPagoPrueba(email, tipoPago);
-            redirectAttributes.addFlashAttribute("mensaje",
-                    "Método de pago registrado (Demo: " + tipoPago + ") y vinculado a tu próxima factura.");
+            boolean hayFacturaPendiente = facturaService.tieneFacturaPendiente(email);
+
+            facturaService.registrarPagoConDatos(email, tipoPago,
+                    ultimos4, titular, emailPaypal, iban, referencia);
+
+            if (hayFacturaPendiente) {
+                redirectAttributes.addFlashAttribute("mensaje",
+                        "Método de pago registrado: " + tipoPago);
+            } else {
+                redirectAttributes.addFlashAttribute("mensaje",
+                        "Método de pago " + tipoPago + " guardado para tu próxima factura");
+            }
             redirectAttributes.addFlashAttribute("tipoMensaje", "exito");
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("mensaje", e.getMessage());
+            redirectAttributes.addFlashAttribute("tipoMensaje", "error");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("mensaje", "Error registrando pago: " + e.getMessage());
             redirectAttributes.addFlashAttribute("tipoMensaje", "error");
         }
-        return "redirect:/dashboard?email=" + email;
+        return "redirect:/dashboard";
+    }
+
+    @PostMapping("/cambiar-plan")
+    public String cambiarPlan(@AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam Long planId,
+            RedirectAttributes redirectAttributes) {
+
+        String email = userDetails.getUsername();
+
+        try {
+            var usuario = usuarioRepository.buscarPorEmail(email)
+                    .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+
+            suscripcionService.cambiarPlan(usuario.getId(), planId);
+
+            redirectAttributes.addFlashAttribute("mensaje",
+                    "Plan cambiado correctamente. Si hubo diferencia de precio, se generó una factura de ajuste.");
+            redirectAttributes.addFlashAttribute("tipoMensaje", "exito");
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("mensaje", e.getMessage());
+            redirectAttributes.addFlashAttribute("tipoMensaje", "warning");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("mensaje", "Error al cambiar plan: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("tipoMensaje", "error");
+        }
+        return "redirect:/dashboard";
     }
 }

@@ -76,12 +76,113 @@
             width: 100%;
             font-weight: bold;
         }
+
+        .campos-pago {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 4px;
+        }
+
+        /* Header profesional */
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 30px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .btn-logout {
+            padding: 8px 16px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-logout:hover {
+            background: #f5f5f5;
+            border-color: #999;
+        }
+
+        /* Estilos para tarjetas de planes */
+        .plan-card {
+            flex: 1;
+            max-width: 320px;
+            min-width: 250px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 24px;
+            background: white;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .plan-card:hover {
+            transform: translateY(-10px) scale(1.03);
+            box-shadow: 0 12px 24px rgba(0, 123, 255, 0.25);
+            border-color: #007bff;
+        }
+
+        .plan-card.current-plan {
+            border-color: #007bff;
+            box-shadow: 0 4px 16px rgba(0, 123, 255, 0.2);
+        }
+
+        .plan-card.current-plan:hover {
+            transform: translateY(-10px) scale(1.03);
+            box-shadow: 0 12px 24px rgba(0, 123, 255, 0.35);
+        }
     </style>
 </head>
 
 <body>
 
-    <div class="container" style="max-width: 1000px;">
+    <div
+        style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 1200px; width: 100%; margin: 20px auto;">
+        <!-- Header con usuario autenticado -->
+        <div class="dashboard-header">
+            <div class="user-info">
+                <div class="user-avatar" th:text="${usuario.email.substring(0,1).toUpperCase()}">U</div>
+                <div>
+                    <div style="font-weight: 600; color: #333;"
+                        th:text="${usuario.perfil != null ? usuario.perfil.nombre + ' ' + usuario.perfil.apellidos : usuario.email}">
+                        Usuario
+                    </div>
+                    <div style="font-size: 14px; color: #666;" th:text="${email}">email@example.com</div>
+                </div>
+            </div>
+            <form method="post" action="/logout" style="margin: 0;">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <button type="submit" class="btn-logout">Cerrar Sesión</button>
+            </form>
+        </div>
+
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h1>Mi Perfil</h1>
             <a th:href="@{/}" style="color: #666; text-decoration: none;">← Volver al Inicio</a>
@@ -117,11 +218,9 @@
                     Fecha</div>
 
                 <form action="/facturas/renovar" method="post" style="margin-top: 15px;">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                     <input type="hidden" name="email" th:value="${email}">
-                    <!-- Redirigir de vuelta al dashboard tras renovar sería ideal, 
-                     pero el controller actual redirige a facturas. 
-                     Para el MVP, aceptamos ir a facturas o ajustamos el controller después. -->
-                    <button type="submit" class="btn" style="width: 100%;">Renovar Ahora (Demo)</button>
+                    <button type="submit" class="btn" style="width: 100%;">Renovar Ahora</button>
                 </form>
             </div>
 
@@ -147,51 +246,244 @@
                     <p>No hay facturas registradas.</p>
                 </div>
 
-                <a th:href="@{/facturas(email=${email})}" class="btn-outline"
-                    style="width: 100%; text-align: center; margin-bottom: 10px;">Ver Mis Facturas</a>
+                <a th:href="@{/mis-facturas}" class="btn-outline"
+                    style="width: 100%; text-align: center; margin-bottom: 10px; display: block; box-sizing: border-box;">Ver
+                    Mis Facturas</a>
             </div>
 
-            <!-- Tarjeta Método de Pago (Demo) -->
+            <!-- Tarjeta Método de Pago -->
             <div class="card">
-                <h3
-                    th:text="${ultimaFacturaPagada != null && !ultimaFacturaPagada ? 'Pagar Pendiente' : 'Método de Pago (Demo)'}">
-                    Método de Pago</h3>
-                <p th:if="${ultimaFacturaPagada != null && !ultimaFacturaPagada}"
-                    style="font-size: 0.9em; color: #d9534f;">
-                    Selecciona un método para abonar tu factura pendiente:
-                </p>
-                <p th:unless="${ultimaFacturaPagada != null && !ultimaFacturaPagada}"
-                    style="font-size: 0.9em; color: #666;">
-                    Selecciona para simular la configuración de pago:
-                </p>
+                <h3>💳 Método de Pago</h3>
+                <p style="color: #666; margin-bottom: 20px;">Selecciona tu método de pago preferido</p>
 
-                <form action="/dashboard/pago" method="post">
-                    <input type="hidden" name="email" th:value="${email}">
+                <form th:action="@{/dashboard/pago}" method="post" id="pagoForm">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
 
-                    <div class="pago-option">
-                        <label>
-                            <input type="radio" name="tipoPago" value="Tarjeta" checked> 💳 Tarjeta Crédito
+                    <!-- Tarjeta -->
+                    <div class="pago-option"
+                        style="border: 1px solid #e0e0e0; border-radius: 6px; padding: 12px; margin-bottom: 10px;">
+                        <label
+                            style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+                            <span style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-size: 20px;">💳</span>
+                                <span style="font-weight: 500;">Tarjeta de Crédito</span>
+                                <span th:if="${metodoPagoPreferido == 'Tarjeta'}"
+                                    style="color: #007bff; font-size: 16px; margin-left: 4px;">✓</span>
+                            </span>
+                            <input type="radio" name="tipoPago" value="Tarjeta"
+                                th:checked="${metodoPagoPreferido == 'Tarjeta' or metodoPagoPreferido == null}"
+                                onchange="mostrarCamposPago('tarjeta')">
                         </label>
                     </div>
-                    <div class="pago-option">
-                        <label>
-                            <input type="radio" name="tipoPago" value="PayPal"> 🅿️ PayPal
-                        </label>
-                    </div>
-                    <div class="pago-option">
-                        <label>
-                            <input type="radio" name="tipoPago" value="Transferencia"> 🏦 Transferencia
-                        </label>
+                    <div id="campos-tarjeta" class="campos-pago"
+                        style="display: none; margin-left: 30px; margin-top: 10px;">
+                        <div style="margin-bottom: 10px;">
+                            <label style="display: block; font-size: 13px; color: #666; margin-bottom: 4px;">Últimos 4
+                                dígitos:</label>
+                            <input type="text" name="ultimos4" id="ultimos4" placeholder="4567" maxlength="4"
+                                pattern="\d{4}"
+                                style="width: 100px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        </div>
+                        <div>
+                            <label
+                                style="display: block; font-size: 13px; color: #666; margin-bottom: 4px;">Titular:</label>
+                            <input type="text" name="titular" id="titular" placeholder="Nombre del titular"
+                                style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        </div>
                     </div>
 
-                    <button type="submit" class="btn" style="background: #17a2b8; width: 100%;">Guardar Método /
-                        Pagar</button>
-                    <small style="display:block; margin-top:5px; color:#888;">* Esto creará un registro de pago asociado
-                        a tu próxima factura automático.</small>
+                    <!-- PayPal -->
+                    <div class="pago-option"
+                        style="border: 1px solid #e0e0e0; border-radius: 6px; padding: 12px; margin-bottom: 10px;">
+                        <label
+                            style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+                            <span style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-size: 20px;">🅿️</span>
+                                <span style="font-weight: 500;">PayPal</span>
+                                <span th:if="${metodoPagoPreferido == 'PayPal'}"
+                                    style="color: #007bff; font-size: 16px; margin-left: 4px;">✓</span>
+                            </span>
+                            <input type="radio" name="tipoPago" value="PayPal"
+                                th:checked="${metodoPagoPreferido == 'PayPal'}" onchange="mostrarCamposPago('paypal')">
+                        </label>
+                    </div>
+                    <div id="campos-paypal" class="campos-pago"
+                        style="display: none; margin-left: 30px; margin-top: 10px;">
+                        <div>
+                            <label style="display: block; font-size: 13px; color: #666; margin-bottom: 4px;">Email
+                                PayPal:</label>
+                            <input type="email" name="emailPaypal" id="emailPaypal" placeholder="tu@email.com"
+                                style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        </div>
+                    </div>
+
+                    <!-- Transferencia Bancaria -->
+                    <div class="pago-option"
+                        style="border: 1px solid #e0e0e0; border-radius: 6px; padding: 12px; margin-bottom: 10px;">
+                        <label
+                            style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+                            <span style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-size: 20px;">🏦</span>
+                                <span style="font-weight: 500;">Transferencia Bancaria</span>
+                                <span th:if="${metodoPagoPreferido == 'Transferencia'}"
+                                    style="color: #007bff; font-size: 16px; margin-left: 4px;">✓</span>
+                            </span>
+                            <input type="radio" name="tipoPago" value="Transferencia"
+                                th:checked="${metodoPagoPreferido == 'Transferencia'}"
+                                onchange="mostrarCamposPago('transferencia')">
+                        </label>
+                    </div>
+                    <div id="campos-transferencia" class="campos-pago"
+                        style="display: none; margin-left: 30px; margin-top: 10px;">
+                        <div style="margin-bottom: 10px;">
+                            <label
+                                style="display: block; font-size: 13px; color: #666; margin-bottom: 4px;">IBAN:</label>
+                            <input type="text" name="iban" id="iban" placeholder="ES91 2100 0418 4502 0005 1332"
+                                style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 13px; color: #666; margin-bottom: 4px;">Referencia
+                                (opcional):</label>
+                            <input type="text" name="referencia" id="referencia"
+                                placeholder="Se generará automáticamente"
+                                style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn"
+                        style="background: #17a2b8; width: 100%; margin-top: 20px;">Registrar Pago</button>
+                    <small
+                        style="display:block; margin-top:10px; color:#888; text-align: center; max-width: 400px; margin-left: auto; margin-right: auto;">
+                        * Sistema de demostración - No se procesarán pagos reales
+                    </small>
                 </form>
+
+                <script>
+                    function mostrarCamposPago(tipo) {
+                        // Ocultar todos los campos
+                        document.getElementById('campos-tarjeta').style.display = 'none';
+                        document.getElementById('campos-paypal').style.display = 'none';
+                        document.getElementById('campos-transferencia').style.display = 'none';
+
+                        // Mostrar solo el seleccionado
+                        if (tipo === 'tarjeta') {
+                            document.getElementById('campos-tarjeta').style.display = 'block';
+                        } else if (tipo === 'paypal') {
+                            document.getElementById('campos-paypal').style.display = 'block';
+                        } else if (tipo === 'transferencia') {
+                            document.getElementById('campos-transferencia').style.display = 'block';
+                        }
+
+                        // Actualizar indicadores visuales (bordes)
+                        const opciones = document.querySelectorAll('.pago-option');
+                        opciones.forEach(opcion => {
+                            opcion.style.border = '1px solid #e0e0e0';
+                            opcion.style.background = 'white';
+                        });
+
+                        // Resaltar la opción seleccionada
+                        const radioSeleccionado = document.querySelector('input[name="tipoPago"]:checked');
+                        if (radioSeleccionado) {
+                            const opcionSeleccionada = radioSeleccionado.closest('.pago-option');
+                            opcionSeleccionada.style.border = '1px solid #007bff';
+                            opcionSeleccionada.style.background = '#f0f8ff';
+                        }
+                    }
+
+                    // Ejecutar al cargar la página para mostrar el método preferido
+                    document.addEventListener('DOMContentLoaded', function () {
+                        const radioSeleccionado = document.querySelector('input[name="tipoPago"]:checked');
+                        if (radioSeleccionado) {
+                            const valor = radioSeleccionado.value.toLowerCase();
+                            mostrarCamposPago(valor);
+                        }
+                    });
+
+                    // Validación del formulario
+                    document.addEventListener('DOMContentLoaded', function () {
+                        document.getElementById('pagoForm').addEventListener('submit', function (e) {
+                            const tipoPago = document.querySelector('input[name="tipoPago"]:checked').value;
+
+                            if (tipoPago === 'Tarjeta') {
+                                const ultimos4 = document.getElementById('ultimos4').value;
+                                const titular = document.getElementById('titular').value;
+                                if (!ultimos4 || ultimos4.length !== 4 || !/^\d{4}$/.test(ultimos4)) {
+                                    e.preventDefault();
+                                    alert('Por favor, ingresa exactamente 4 dígitos numéricos');
+                                    return;
+                                }
+                                if (!titular || titular.trim().length < 3) {
+                                    e.preventDefault();
+                                    alert('El titular debe tener al menos 3 caracteres');
+                                    return;
+                                }
+                            } else if (tipoPago === 'PayPal') {
+                                const emailPaypal = document.getElementById('emailPaypal').value;
+                                if (!emailPaypal || !emailPaypal.includes('@')) {
+                                    e.preventDefault();
+                                    alert('Ingresa un email válido de PayPal');
+                                    return;
+                                }
+                            } else if (tipoPago === 'Transferencia') {
+                                const iban = document.getElementById('iban').value;
+                                if (!iban || iban.replace(/\s/g, '').length < 20) {
+                                    e.preventDefault();
+                                    alert('Ingresa un IBAN válido');
+                                    return;
+                                }
+                            }
+                        });
+                    });
+                </script>
+            </div>
+
+        </div> <!-- FIN dashboard-grid -->
+
+        <!-- Sección Cambiar Plan (FUERA del grid) -->
+        <div style="margin-top: 40px; padding: 20px 0;">
+            <h3 style="text-align: center; margin-bottom: 10px; color: #333;">Cambiar Plan</h3>
+            <p style="text-align: center; color: #666; margin-bottom: 30px; font-size: 14px;">
+                Selecciona el plan que mejor se adapte a tus necesidades
+            </p>
+
+            <!-- CONTENEDOR FLEX -->
+            <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: nowrap;">
+
+                <!-- Tarjetas de planes -->
+                <div th:each="plan : ${planes}" class="plan-card"
+                    th:classappend="${suscripcion.plan.id == plan.id} ? 'current-plan' : ''">
+
+                    <!-- Badge si es plan actual -->
+                    <div th:if="${suscripcion.plan.id == plan.id}"
+                        style="background: #007bff; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; margin-bottom: 10px; display: inline-block;">
+                        Plan Actual
+                    </div>
+
+                    <!-- Nombre -->
+                    <h4 th:text="${plan.nombre}" style="font-size: 24px; margin: 10px 0; color: #333;">PLAN</h4>
+
+                    <!-- Precio -->
+                    <div style="margin: 20px 0;">
+                        <span th:text="${plan.precioMensual}"
+                            style="font-size: 32px; font-weight: bold; color: #007bff;">0.00</span>
+                        <span style="font-size: 18px; color: #666;">€/mes</span>
+                    </div>
+
+                    <!-- Botón -->
+                    <form th:action="@{/dashboard/cambiar-plan}" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <input type="hidden" name="planId" th:value="${plan.id}" />
+                        <button type="submit" th:disabled="${suscripcion.plan.id == plan.id}"
+                            th:text="${suscripcion.plan.id == plan.id} ? 'Plan Actual' : 'Cambiar a ' + ${plan.nombre}"
+                            style="width: 100%; padding: 12px; border: none; border-radius: 6px; font-size: 16px; cursor: pointer;"
+                            th:style="${suscripcion.plan.id == plan.id} ? 'background: #6c757d; color: white;' : 'background: #007bff; color: white;'">
+                            Cambiar
+                        </button>
+                    </form>
+                </div>
+
             </div>
         </div>
-    </div>
 
 </body>
 

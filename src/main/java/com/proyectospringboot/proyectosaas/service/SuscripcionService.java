@@ -108,5 +108,6 @@ public class SuscripcionService {
                 }
             }
         }
+        // DOWNGRADE: No se genera factura (Opción A)
     }
 }

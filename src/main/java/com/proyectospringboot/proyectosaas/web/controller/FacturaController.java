@@ -3,6 +3,8 @@ package com.proyectospringboot.proyectosaas.web.controller;
 import com.proyectospringboot.proyectosaas.domain.entity.Factura;
 import com.proyectospringboot.proyectosaas.service.FacturaService;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -90,7 +92,34 @@ public class FacturaController {
             redirectAttributes.addFlashAttribute("tipoMensaje", "error");
         }
 
-        return "redirect:/facturas?email=" + email;
+        return "redirect:/dashboard";
+    }
+
+    /**
+     * Vista de facturas para usuarios normales (solo sus propias facturas)
+     */
+    @GetMapping("/mis-facturas")
+    public String misFacturas(@AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(required = false) LocalDateTime fechaInicio,
+            @RequestParam(required = false) LocalDateTime fechaFin,
+            @RequestParam(required = false) BigDecimal totalMin,
+            @RequestParam(required = false) BigDecimal totalMax,
+            Model model) {
+
+        String email = userDetails.getUsername();
+
+        // Buscar facturas del usuario autenticado con filtros opcionales
+        List<Factura> facturas = facturaService.buscarFacturasConFiltros(email, fechaInicio, fechaFin, totalMin,
+                totalMax);
+
+        model.addAttribute("facturas", facturas);
+        model.addAttribute("email", email);
+        model.addAttribute("fechaInicio", fechaInicio);
+        model.addAttribute("fechaFin", fechaFin);
+        model.addAttribute("totalMin", totalMin);
+        model.addAttribute("totalMax", totalMax);
+
+        return "mis-facturas";
     }
 
 }

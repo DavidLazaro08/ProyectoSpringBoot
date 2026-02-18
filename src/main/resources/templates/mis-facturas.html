@@ -3,70 +3,13 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Gestión de Facturas - Admin</title>
+    <title>Mis Facturas - Proyecto SaaS</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
-            margin: 0;
-            padding: 20px;
-        }
-
         .facturas-container {
             max-width: 1200px;
             margin: 0 auto;
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        h1 {
-            color: #333;
-            margin-bottom: 20px;
-        }
-
-        .back-link {
-            color: #007bff;
-            text-decoration: none;
-            font-weight: 500;
-            display: inline-block;
-            margin-bottom: 20px;
-        }
-
-        .back-link:hover {
-            text-decoration: underline;
-        }
-
-        .search-card {
-            background: #f8f9fa;
             padding: 20px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-        }
-
-        .search-card input[type="email"] {
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            width: 300px;
-            font-size: 14px;
-        }
-
-        .search-card button {
-            padding: 10px 24px;
-            background: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 600;
-            margin-left: 10px;
-        }
-
-        .search-card button:hover {
-            background: #0056b3;
         }
 
         .filters-card {
@@ -162,51 +105,41 @@
             background: #0056b3;
         }
 
-        .mensaje {
-            padding: 12px;
-            border-radius: 4px;
-            margin-bottom: 20px;
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
         }
 
-        .mensaje.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+        .back-link {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: 500;
         }
 
-        .mensaje.exito {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+        .back-link:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 
 <body>
     <div class="facturas-container">
-        <h1>Gestión de Facturas</h1>
-
-        <a th:href="@{/admin/auditoria}" class="back-link">← Volver al Panel de Auditoría</a>
+        <div class="header-section">
+            <h1>Mis Facturas</h1>
+            <a th:href="@{/dashboard}" class="back-link">← Volver al Dashboard</a>
+        </div>
 
         <!-- Mensajes Flash -->
         <div th:if="${mensaje}" th:class="'mensaje ' + ${tipoMensaje != null ? tipoMensaje : 'error'}"
             th:text="${mensaje}">
         </div>
 
-        <!-- Buscador por Email -->
-        <div class="search-card">
-            <form method="get" action="/facturas">
-                <input type="email" name="email" placeholder="Ingrese email del usuario" th:value="${email}" required>
-                <button type="submit">Buscar</button>
-            </form>
-        </div>
-
-        <!-- Filtros opcionales -->
-        <div class="filters-card" th:if="${email != null and !email.isBlank()}">
+        <!-- Filtros -->
+        <div class="filters-card">
             <h3 style="margin-top: 0;">Filtros opcionales</h3>
-            <form method="get" action="/facturas">
-                <input type="hidden" name="email" th:value="${email}">
-
+            <form method="get" th:action="@{/mis-facturas}">
                 <div class="filters-grid">
                     <div class="filter-group">
                         <label for="fechaInicio">Fecha inicio:</label>
@@ -242,7 +175,7 @@
                     No hay facturas que cumplan los filtros aplicados.
                 </p>
                 <p th:unless="${fechaInicio != null or fechaFin != null or totalMin != null or totalMax != null}">
-                    No hay facturas registradas para este usuario.
+                    Aún no tienes facturas registradas.
                 </p>
             </div>
 

@@ -16,6 +16,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -62,6 +63,9 @@ class RegistroServiceTest {
     @Mock
     private FacturaService facturaService;
 
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
     @InjectMocks
     private RegistroService registroService;
 
@@ -82,8 +86,9 @@ class RegistroServiceTest {
         when(usuarioRepository.save(any(Usuario.class))).thenAnswer(i -> i.getArguments()[0]);
         when(perfilRepository.save(any(Perfil.class))).thenAnswer(i -> i.getArguments()[0]);
         when(suscripcionRepository.save(any(Suscripcion.class))).thenAnswer(i -> i.getArguments()[0]);
+        when(passwordEncoder.encode(any(String.class))).thenReturn("$2a$10$hashedPassword");
 
-        Usuario resultado = registroService.registrar(email, pais, "Nom", "Ape", "600", planId);
+        Usuario resultado = registroService.registrar(email, pais, "Nom", "Ape", "600", planId, "password123");
 
         assertNotNull(resultado);
         assertEquals(email, resultado.getEmail());
@@ -100,6 +105,9 @@ class RegistroServiceTest {
 
         BigDecimal totalEsperado = new BigDecimal("12.10");
         assertEquals(0, facturaGuardada.getTotal().compareTo(totalEsperado));
+
+        // Verificar que se hasheó la contraseña
+        verify(passwordEncoder).encode("password123");
     }
 
     @Test
@@ -112,8 +120,7 @@ class RegistroServiceTest {
 
         IllegalArgumentException ex = assertThrows(
                 IllegalArgumentException.class,
-                () -> registroService.registrar(email, "ES", "Nom", "Ape", "600", 1L)
-        );
+                () -> registroService.registrar(email, "ES", "Nom", "Ape", "600", 1L, "password123"));
 
         assertEquals("Ya existe un usuario con ese email.", ex.getMessage());
 

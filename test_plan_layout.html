@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Test Plan Layout</title>
+</head>
+
+<body style="padding: 20px; background: #f5f5f5;">
+
+    <div
+        style="background: white; padding: 30px 20px; border-radius: 8px; text-align: center; max-width: 1200px; margin: 0 auto;">
+        <h3
+            style="margin-top: 0; color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px; display: inline-block;">
+            Cambiar Plan</h3>
+        <p style="color: #666; margin-bottom: 30px;">
+            Selecciona el plan que mejor se adapte a tus necesidades.
+        </p>
+
+        <!-- Contenedor flex para planes horizontales -->
+        <div style="display: flex; justify-content: center; align-items: stretch; gap: 20px; flex-wrap: wrap;">
+
+            <!-- BASIC -->
+            <div
+                style="flex: 0 1 280px; min-width: 250px; border: 2px solid #e0e0e0; border-radius: 8px; padding: 24px; background: white; position: relative; display: flex; flex-direction: column;">
+                <h4 style="margin: 0 0 16px 0; font-size: 24px; color: #333;">BASIC</h4>
+                <div style="margin-bottom: 20px;">
+                    <span style="font-size: 32px; font-weight: bold; color: #007bff;">9.99</span>
+                    <span style="font-size: 18px; color: #666;">€</span>
+                    <span style="font-size: 14px; color: #999;">/mes</span>
+                </div>
+                <button
+                    style="background: #007bff; color: white; width: 100%; padding: 12px; border: none; border-radius: 6px; cursor: pointer; margin-top: auto;">
+                    Cambiar a BASIC
+                </button>
+            </div>
+
+            <!-- PREMIUM -->
+            <div
+                style="flex: 0 1 280px; min-width: 250px; border: 2px solid #007bff; border-radius: 8px; padding: 24px; background: white; position: relative; display: flex; flex-direction: column;">
+                <div
+                    style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: #007bff; color: white; padding: 4px 16px; border-radius: 12px; font-size: 12px; font-weight: bold;">
+                    Plan Actual
+                </div>
+                <h4 style="margin: 0 0 16px 0; font-size: 24px; color: #007bff;">PREMIUM</h4>
+                <div style="margin-bottom: 20px;">
+                    <span style="font-size: 32px; font-weight: bold; color: #007bff;">19.99</span>
+                    <span style="font-size: 18px; color: #666;">€</span>
+                    <span style="font-size: 14px; color: #999;">/mes</span>
+                </div>
+                <button
+                    style="background: #6c757d; color: white; width: 100%; padding: 12px; border: none; border-radius: 6px; cursor: not-allowed; margin-top: auto;"
+                    disabled>
+                    Plan Actual
+                </button>
+            </div>
+
+            <!-- ENTERPRISE -->
+            <div
+                style="flex: 0 1 280px; min-width: 250px; border: 2px solid #e0e0e0; border-radius: 8px; padding: 24px; background: white; position: relative; display: flex; flex-direction: column;">
+                <h4 style="margin: 0 0 16px 0; font-size: 24px; color: #333;">ENTERPRISE</h4>
+                <div style="margin-bottom: 20px;">
+                    <span style="font-size: 32px; font-weight: bold; color: #007bff;">49.99</span>
+                    <span style="font-size: 18px; color: #666;">€</span>
+                    <span style="font-size: 14px; color: #999;">/mes</span>
+                </div>
+                <button
+                    style="background: #007bff; color: white; width: 100%; padding: 12px; border: none; border-radius: 6px; cursor: pointer; margin-top: auto;">
+                    Cambiar a ENTERPRISE
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+
+</html>

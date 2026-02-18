@@ -5,6 +5,7 @@ import com.proyectospringboot.proyectosaas.domain.entity.Plan;
 import com.proyectospringboot.proyectosaas.domain.entity.Suscripcion;
 import com.proyectospringboot.proyectosaas.domain.entity.Usuario;
 import com.proyectospringboot.proyectosaas.domain.enums.EstadoSuscripcion;
+import com.proyectospringboot.proyectosaas.domain.enums.RolUsuario;
 import com.proyectospringboot.proyectosaas.repository.FacturaRepository;
 import com.proyectospringboot.proyectosaas.repository.PlanRepository;
 import com.proyectospringboot.proyectosaas.repository.SuscripcionRepository;
@@ -67,7 +68,7 @@ class SuscripcionServiceTest {
     void setUp() {
 
         // Usamos objetos reales para que el test no sea tan artificial
-        usuario = new Usuario("test@test.com", "ES");
+        usuario = new Usuario("test@test.com", "ES", "hashedPassword", RolUsuario.USER);
 
         planBasic = new Plan("BASIC", new BigDecimal("10.00"));
         ponerId(planBasic, 1L);

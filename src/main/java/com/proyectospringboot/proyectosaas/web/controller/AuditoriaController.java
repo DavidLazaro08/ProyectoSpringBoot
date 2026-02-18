@@ -5,14 +5,12 @@ import com.proyectospringboot.proyectosaas.service.FacturaService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
 /* AuditoriaController:
- * Panel de administración sencillo.
+ * Panel de administración protegido por Spring Security (solo ROLE_ADMIN).
  * Permite:
- *  - Acceso mediante clave (admin / admin123).
  *  - Visualizar historial de cambios (Envers).
  *  - Ejecutar migración de facturas antiguas si fuese necesario. */
 
@@ -23,50 +21,17 @@ public class AuditoriaController {
     private final FacturaService facturaService;
 
     public AuditoriaController(AuditoriaService auditoriaService,
-                               FacturaService facturaService) {
+            FacturaService facturaService) {
         this.auditoriaService = auditoriaService;
         this.facturaService = facturaService;
     }
 
     // =========================================================
-    // LOGIN ADMIN
-    // =========================================================
-
-    @GetMapping("/admin")
-    public String loginAdmin(@RequestParam(required = false) String error,
-                             Model model) {
-
-        if (error != null) {
-            model.addAttribute("error", error);
-        }
-
-        return "auditoria-login";
-    }
-
-    @org.springframework.web.bind.annotation.PostMapping("/admin")
-    public String procesarLoginAdmin(@RequestParam String key) {
-
-        // Claves válidas (admin / admin123)
-        if ("admin".equals(key) || "admin123".equalsIgnoreCase(key)) {
-            return "redirect:/admin/auditoria?key=" + key;
-        }
-
-        return "redirect:/admin?error=Clave incorrecta";
-    }
-
-    // =========================================================
-    // PANEL DE AUDITORÍA
+    // PANEL DE AUDITORÍA (protegido por Spring Security)
     // =========================================================
 
     @GetMapping("/admin/auditoria")
-    public String mostrarAuditoria(@RequestParam(required = false) String key,
-                                   Model model) {
-
-        // Protección básica: si no hay clave o no es válida, vuelta al login
-        if (key == null ||
-                (!key.equals("admin") && !key.equalsIgnoreCase("admin123"))) {
-            return "redirect:/admin";
-        }
+    public String mostrarAuditoria(Model model) {
 
         try {
 
@@ -85,8 +50,7 @@ public class AuditoriaController {
                         "Error al migrar facturas antiguas: " + e.getMessage());
             }
 
-            List<AuditoriaService.RevisionDTO> revisiones =
-                    auditoriaService.obtenerHistorialCambios();
+            List<AuditoriaService.RevisionDTO> revisiones = auditoriaService.obtenerHistorialCambios();
 
             model.addAttribute("revisiones", revisiones);
 

@@ -1,0 +1,138 @@
+<!-- SECCIÓN DE PAGO - INSERTAR EN DASHBOARD.HTML LÍNEA 306 -->
+
+<!-- Tarjeta Método de Pago -->
+<div class="card">
+    <h3>💳 Pagar Pendiente</h3>
+    <p style="color: #666; margin-bottom: 20px;">Selecciona tu método de pago preferido</p>
+
+    <form th:action="@{/pago}" method="post" id="pagoForm">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+        <!-- Tarjeta -->
+        <div class="pago-option">
+            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                <input type="radio" name="tipoPago" value="Tarjeta" checked onchange="mostrarCamposPago('tarjeta')">
+                <span>💳 Tarjeta de Crédito</span>
+            </label>
+        </div>
+        <div id="campos-tarjeta" class="campos-pago" style="display: block; margin-left: 30px; margin-top: 10px;">
+            <div style="margin-bottom: 10px;">
+                <label style="display: block; font-size: 13px; color: #666; margin-bottom: 4px;">Últimos 4
+                    dígitos:</label>
+                <input type="text" name="ultimos4" id="ultimos4" placeholder="4567" maxlength="4" pattern="\d{4}"
+                    style="width: 100px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+            <div>
+                <label style="display: block; font-size: 13px; color: #666; margin-bottom: 4px;">Titular:</label>
+                <input type="text" name="titular" id="titular" placeholder="Nombre del titular"
+                    style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+        </div>
+
+        <!-- PayPal -->
+        <div class="pago-option">
+            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                <input type="radio" name="tipoPago" value="PayPal" onchange="mostrarCamposPago('paypal')">
+                <span>🅿️ PayPal</span>
+            </label>
+        </div>
+        <div id="campos-paypal" class="campos-pago" style="display: none; margin-left: 30px; margin-top: 10px;">
+            <div>
+                <label style="display: block; font-size: 13px; color: #666; margin-bottom: 4px;">Email PayPal:</label>
+                <input type="email" name="emailPaypal" id="emailPaypal" placeholder="tu@email.com"
+                    style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+        </div>
+
+        <!-- Transferencia -->
+        <div class="pago-option">
+            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                <input type="radio" name="tipoPago" value="Transferencia" onchange="mostrarCamposPago('transferencia')">
+                <span>🏦 Transferencia Bancaria</span>
+            </label>
+        </div>
+        <div id="campos-transferencia" class="campos-pago" style="display: none; margin-left: 30px; margin-top: 10px;">
+            <div style="margin-bottom: 10px;">
+                <label style="display: block; font-size: 13px; color: #666; margin-bottom: 4px;">IBAN:</label>
+                <input type="text" name="iban" id="iban" placeholder="ES91 2100 0418 4502 0005 1332"
+                    style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+            <div>
+                <label style="display: block; font-size: 13px; color: #666; margin-bottom: 4px;">Referencia
+                    (opcional):</label>
+                <input type="text" name="referencia" id="referencia" placeholder="Se generará automáticamente"
+                    style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+        </div>
+
+        <button type="submit" class="btn" style="background: #17a2b8; width: 100%; margin-top: 20px;">Registrar
+            Pago</button>
+        <small style="display:block; margin-top:10px; color:#888; text-align: center;">* Sistema de demostración - No se
+            procesarán pagos reales</small>
+    </form>
+
+    <script>
+        function mostrarCamposPago(tipo) {
+            document.querySelectorAll('.campos-pago').forEach(el => el.style.display = 'none');
+            if (tipo !== 'tarjeta') {
+                document.getElementById('ultimos4').value = '';
+                document.getElementById('titular').value = '';
+                document.getElementById('ultimos4').removeAttribute('required');
+                document.getElementById('titular').removeAttribute('required');
+            }
+            if (tipo !== 'paypal') {
+                document.getElementById('emailPaypal').value = '';
+                document.getElementById('emailPaypal').removeAttribute('required');
+            }
+            if (tipo !== 'transferencia') {
+                document.getElementById('iban').value = '';
+                document.getElementById('referencia').value = '';
+                document.getElementById('iban').removeAttribute('required');
+            }
+            if (tipo === 'tarjeta') {
+                document.getElementById('campos-tarjeta').style.display = 'block';
+                document.getElementById('ultimos4').setAttribute('required', 'required');
+                document.getElementById('titular').setAttribute('required', 'required');
+            } else if (tipo === 'paypal') {
+                document.getElementById('campos-paypal').style.display = 'block';
+                document.getElementById('emailPaypal').setAttribute('required', 'required');
+            } else if (tipo === 'transferencia') {
+                document.getElementById('campos-transferencia').style.display = 'block';
+                document.getElementById('iban').setAttribute('required', 'required');
+            }
+        }
+        document.getElementById('pagoForm').addEventListener('submit', function (e) {
+            const tipoPago = document.querySelector('input[name="tipoPago"]:checked').value;
+            if (tipoPago === 'Tarjeta') {
+                const ultimos4 = document.getElementById('ultimos4').value;
+                const titular = document.getElementById('titular').value;
+                if (!ultimos4 || ultimos4.length !== 4 || !/^\d{4}$/.test(ultimos4)) {
+                    e.preventDefault();
+                    alert('Por favor, ingresa exactamente 4 dígitos numéricos');
+                    return;
+                }
+                if (!titular || titular.trim().length < 3) {
+                    e.preventDefault();
+                    alert('El titular debe tener al menos 3 caracteres');
+                    return;
+                }
+            } else if (tipoPago === 'PayPal') {
+                const emailPaypal = document.getElementById('emailPaypal').value;
+                if (!emailPaypal || !emailPaypal.includes('@')) {
+                    e.preventDefault();
+                    alert('Ingresa un email válido de PayPal');
+                    return;
+                }
+            } else if (tipoPago === 'Transferencia') {
+                const iban = document.getElementById('iban').value;
+                if (!iban || iban.replace(/\s/g, '').length < 20) {
+                    e.preventDefault();
+                    alert('Ingresa un IBAN válido');
+                    return;
+                }
+            }
+        });
+    </script>
+</div>
+
+<!-- FIN SECCIÓN DE PAGO -->

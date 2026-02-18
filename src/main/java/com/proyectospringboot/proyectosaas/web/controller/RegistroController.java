@@ -1,7 +1,6 @@
 package com.proyectospringboot.proyectosaas.web.controller;
 
 import com.proyectospringboot.proyectosaas.domain.entity.Plan;
-import com.proyectospringboot.proyectosaas.domain.entity.Usuario;
 import com.proyectospringboot.proyectosaas.service.RegistroService;
 import com.proyectospringboot.proyectosaas.repository.PlanRepository;
 import org.springframework.stereotype.Controller;
@@ -23,7 +22,7 @@ public class RegistroController {
     private final RegistroService registroService;
 
     public RegistroController(PlanRepository planRepository,
-                              RegistroService registroService) {
+            RegistroService registroService) {
         this.planRepository = planRepository;
         this.registroService = registroService;
     }
@@ -52,11 +51,12 @@ public class RegistroController {
             @RequestParam String nombre,
             @RequestParam String apellidos,
             @RequestParam(required = false) String telefono,
-            @RequestParam Long planId) {
+            @RequestParam Long planId,
+            @RequestParam String password) {
 
-        Usuario usuario = registroService
-                .registrar(email, pais, nombre, apellidos, telefono, planId);
+        registroService.registrar(email, pais, nombre, apellidos, telefono, planId, password);
 
-        return "redirect:/dashboard?email=" + usuario.getEmail();
+        // Redirigir al login con mensaje de éxito
+        return "redirect:/login?registered=true";
     }
 }

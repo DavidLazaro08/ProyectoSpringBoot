@@ -1,9 +1,12 @@
 package com.proyectospringboot.proyectosaas.service;
 
 import com.proyectospringboot.proyectosaas.domain.entity.Factura;
+import com.proyectospringboot.proyectosaas.domain.entity.Plan;
 import com.proyectospringboot.proyectosaas.domain.entity.Suscripcion;
+import com.proyectospringboot.proyectosaas.domain.entity.Usuario;
 import com.proyectospringboot.proyectosaas.domain.enums.EstadoSuscripcion;
 import com.proyectospringboot.proyectosaas.repository.FacturaRepository;
+import com.proyectospringboot.proyectosaas.repository.PlanRepository;
 import com.proyectospringboot.proyectosaas.repository.SuscripcionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -177,9 +180,158 @@ public class FacturaService {
     }
 
     // =========================================================
-    // PAGO (solo para probar la herencia)
+    // VERIFICAR FACTURA PENDIENTE
     // =========================================================
 
+    public boolean tieneFacturaPendiente(String email) {
+        try {
+            String hql = "SELECT COUNT(f) FROM Factura f " +
+                    "WHERE f.suscripcion.usuario.email = :email " +
+                    "AND NOT EXISTS (SELECT p FROM Pago p WHERE p.factura = f)";
+
+            Long count = entityManager.createQuery(hql, Long.class)
+                    .setParameter("email", email)
+                    .getSingleResult();
+
+            return count > 0;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    // =========================================================
+    // REGISTRAR PAGO CON DATOS ESPECÍFICOS
+    // =========================================================
+
+    @Transactional
+    public void registrarPagoConDatos(String email, String tipoPago,
+            String ultimos4, String titular,
+            String emailPaypal,
+            String iban, String referencia) {
+
+        // Validar datos según el tipo de pago
+        switch (tipoPago.toLowerCase()) {
+            case "tarjeta":
+                if (ultimos4 == null || !ultimos4.matches("\\d{4}")) {
+                    throw new IllegalArgumentException(
+                            "Los últimos 4 dígitos de la tarjeta deben ser exactamente 4 números");
+                }
+                if (titular == null || titular.trim().length() < 3) {
+                    throw new IllegalArgumentException("El nombre del titular debe tener al menos 3 caracteres");
+                }
+                break;
+            case "paypal":
+                if (emailPaypal == null || !emailPaypal.contains("@")) {
+                    throw new IllegalArgumentException("Debe proporcionar un email válido de PayPal");
+                }
+                break;
+            case "transferencia":
+                if (iban == null || iban.replace(" ", "").length() < 20) {
+                    throw new IllegalArgumentException("Debe proporcionar un IBAN válido");
+                }
+                // Generar referencia automática si no se proporciona
+                if (referencia == null || referencia.trim().isEmpty()) {
+                    referencia = "REF-" + System.currentTimeMillis();
+                }
+                break;
+            default:
+                throw new IllegalArgumentException("Tipo de pago no soportado: " + tipoPago);
+        }
+
+        // Buscar o crear factura
+        List<Factura> facturas = facturaRepository.buscarPorEmail(email);
+        Factura facturaObjetivo;
+
+        if (facturas.isEmpty()) {
+            var suscripcion = suscripcionRepository.buscarPorEmail(email)
+                    .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+
+            facturaObjetivo = new Factura(
+                    suscripcion,
+                    LocalDateTime.now(),
+                    BigDecimal.ONE,
+                    BigDecimal.ZERO,
+                    BigDecimal.ONE,
+                    "Factura de Prueba");
+            facturaRepository.save(facturaObjetivo);
+
+        } else {
+            Factura facturaPendiente = null;
+
+            try {
+                String hql = "SELECT f FROM Factura f " +
+                        "WHERE f.suscripcion.usuario.email = :email " +
+                        "AND NOT EXISTS (SELECT p FROM Pago p WHERE p.factura = f) " +
+                        "ORDER BY f.fecha DESC";
+
+                List<Factura> pendientes = entityManager.createQuery(hql, Factura.class)
+                        .setParameter("email", email)
+                        .setMaxResults(1)
+                        .getResultList();
+
+                if (!pendientes.isEmpty()) {
+                    facturaPendiente = pendientes.get(0);
+                }
+            } catch (Exception e) {
+                // Si algo falla, continuamos
+            }
+
+            if (facturaPendiente != null) {
+                facturaObjetivo = facturaPendiente;
+            } else {
+                var suscripcion = suscripcionRepository.buscarPorEmail(email)
+                        .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+
+                facturaObjetivo = new Factura(
+                        suscripcion,
+                        LocalDateTime.now(),
+                        BigDecimal.ZERO,
+                        BigDecimal.ZERO,
+                        BigDecimal.ZERO,
+                        "Factura de Prueba (0€)");
+                facturaRepository.save(facturaObjetivo);
+            }
+        }
+
+        // Crear el pago específico con los datos proporcionados
+        com.proyectospringboot.proyectosaas.domain.entity.Pago nuevoPago = null;
+        LocalDateTime ahora = LocalDateTime.now();
+        BigDecimal importe = facturaObjetivo.getTotal();
+
+        switch (tipoPago.toLowerCase()) {
+            case "tarjeta":
+                nuevoPago = new com.proyectospringboot.proyectosaas.domain.entity.PagoTarjeta(
+                        facturaObjetivo, importe, ahora,
+                        ultimos4, titular);
+                break;
+            case "paypal":
+                nuevoPago = new com.proyectospringboot.proyectosaas.domain.entity.PagoPaypal(
+                        facturaObjetivo, importe, ahora,
+                        emailPaypal);
+                break;
+            case "transferencia":
+                nuevoPago = new com.proyectospringboot.proyectosaas.domain.entity.PagoTransferencia(
+                        facturaObjetivo, importe, ahora,
+                        iban.replace(" ", ""),
+                        referencia);
+                break;
+        }
+
+        entityManager.persist(nuevoPago);
+
+        // Guardar el método de pago como preferencia del usuario
+        var suscripcion = suscripcionRepository.buscarPorEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+        Usuario usuario = suscripcion.getUsuario();
+        usuario.setMetodoPagoPreferido(tipoPago);
+        entityManager.merge(usuario);
+    }
+
+    // =========================================================
+    // MÉTODO ANTIGUO (DEPRECATED) - Mantener por compatibilidad
+    // =========================================================
+
+    @Deprecated
     @Transactional
     public void registrarPagoPrueba(String email, String tipoPago) {
         // Solo para pruebas: creamos un Pago (Tarjeta/PayPal/Transferencia) y lo
