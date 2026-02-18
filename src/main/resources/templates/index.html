@@ -4,65 +4,22 @@
 <head>
     <meta charset="UTF-8">
     <title>SaaS Project - Home</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f4f4f9;
-            text-align: center;
-        }
-
-        .home-container {
-            max-width: 600px;
-            margin: 50px auto;
-            text-align: center;
-            padding: 20px;
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .btn {
-            display: inline-block;
-            margin: 10px;
-            padding: 10px 20px;
-            background: #007bff;
-            color: white;
-            text-decoration: none;
-            border-radius: 4px;
-            font-size: 16px;
-        }
-
-        .btn-secondary {
-            background: #6c757d;
-        }
-
-        .btn-warning {
-            background: #ffc107;
-            color: #333;
-        }
-
-        .actions {
-            margin-top: 30px;
-        }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/base.css}">
 </head>
 
 <body>
-
-    <div class="home-container">
+    <div class="contenedor-home">
         <h1>Bienvenido a SaaS Project</h1>
         <p>Plataforma de gestión de suscripciones</p>
 
-        <div class="actions">
-            <a href="/registro" class="btn">Registrarse</a>
-            <a href="/login" class="btn btn-secondary">Iniciar Sesión</a>
+        <div class="acciones-home">
+            <a href="/registro" class="boton">Registrarse</a>
+            <a href="/login" class="boton boton-secundario">Iniciar Sesión</a>
         </div>
 
         <!-- Botón de admin solo visible para usuarios con rol ADMIN -->
-        <div sec:authorize="hasRole('ADMIN')" style="margin-top: 30px;">
-            <a href="/admin/auditoria" class="btn btn-warning">Panel Auditoría (Admin)</a>
+        <div sec:authorize="hasRole('ADMIN')" class="acciones-admin">
+            <a href="/admin/auditoria" class="boton boton-warning">Panel Auditoría (Admin)</a>
         </div>
     </div>
 

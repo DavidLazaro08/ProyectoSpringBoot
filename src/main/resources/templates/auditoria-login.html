@@ -4,27 +4,27 @@
 <head>
     <meta charset="UTF-8">
     <title>Acceso Auditoría</title>
-    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/base.css}">
 </head>
 
 <body>
-    <div class="container container-sm text-center">
+    <div class="contenedor contenedor-sm centrado">
         <h2>Panel de Auditoría</h2>
         <p>Área restringida. Por favor, identifícate.</p>
 
-        <div th:if="${error}" class="mensaje error" style="color: red; margin-bottom: 15px;">
+        <div th:if="${error}" class="mensaje error">
             <span th:text="${error}"></span>
         </div>
 
         <form action="/admin" method="post">
-            <div class="form-group">
+            <div class="grupo-campo">
                 <input type="password" name="key" placeholder="Clave de administrador" required>
             </div>
-            <button type="submit" class="btn">Entrar</button>
+            <button type="submit" class="boton">Entrar</button>
         </form>
 
-        <div style="margin-top: 20px;">
-            <a href="/" style="color: #6c757d; text-decoration: none;">← Volver al inicio</a>
+        <div class="mt-20">
+            <a href="/" class="enlace-volver">← Volver al inicio</a>
         </div>
     </div>
 </body>
